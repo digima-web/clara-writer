@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/icon.png" width="160" alt="Clara Writer"></p>
+
 # Clara Writer
 
 **Clear writing, with AI by your side.**
@@ -26,12 +28,15 @@ your articles and books. **Your words stay yours:** Claude never rewrites anythi
 
 ## Installation
 
-1. Download the latest version from the **Releases** page of this project.
-2. Extract the folder and double-click **Clara Writer.bat**.
-3. The first time, it installs everything it needs on its own (Git, Python, Pandoc, Claude Code)
+1. Go to the [**Releases**](https://github.com/digima-web/clara-writer/releases/latest) page and download **Install-Clara-Writer.bat**.
+2. Double-click it. It downloads Clara Writer, puts it in your user folder and creates a **Clara Writer** icon on the desktop and in the Start menu.
+3. The first time, Clara Writer installs what it needs on its own (Git, Python, Pandoc, Claude Code)
    and asks you to sign in to Claude.
 
 Windows may show the warning "Windows protected your PC": click **More info**, then **Run anyway**.
+
+**Updates are automatic:** every time it starts, Clara Writer checks for a new version and installs it.
+Your texts are never touched: they live in a separate folder (Documents\Clara Writer).
 
 Full instructions: [docs/INSTALL.md](docs/INSTALL.md).
 

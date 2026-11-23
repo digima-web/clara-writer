@@ -491,7 +491,8 @@ def export_word(rel):
 
 CONTENT_TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
                  ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".ico": "image/x-icon",
-                 ".woff2": "font/woff2", ".ttf": "font/ttf", ".json": "application/json; charset=utf-8"}
+                 ".woff2": "font/woff2", ".ttf": "font/ttf", ".json": "application/json; charset=utf-8",
+                 ".png": "image/png"}
 
 
 def language_info():
