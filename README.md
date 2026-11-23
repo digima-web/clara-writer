@@ -33,6 +33,8 @@ your articles and books. **Your words stay yours:** Claude never rewrites anythi
 
 Windows may show the warning "Windows protected your PC": click **More info**, then **Run anyway**.
 
+Full instructions: [docs/INSTALL.md](docs/INSTALL.md).
+
 ## Keys
 
 | Key | What it does |
@@ -46,11 +48,13 @@ Windows may show the warning "Windows protected your PC": click **More info**, t
 | F7 | New article, book or chapter |
 | F8 | Undo Claude's changes |
 | F9 / F10 | Typeface / colours |
+| Shift + F10 | Language |
 | F12 | Export to Word |
 
 ## Languages
 
-Clara Writer is currently available in Italian. More languages, starting with English, are on the way.
+Clara Writer is available in **English** and **Italian**. It follows the Windows language and can be changed at any time with **Shift + F10**.
+Each language is a single file in `lang/`: to add one, translate `lang/en.json` and the rules in `templates/CLAUDE.en.md`.
 
 ## Notes
 

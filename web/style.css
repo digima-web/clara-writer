@@ -1,21 +1,21 @@
 /* Clara Writer: stile pensato per chi vede poco */
 
-/* Carattere incluso nel programma (licenza OFL, vedi font/OFL.txt) */
+/* Typeface bundled with the program (OFL licence, see font/OFL.txt) */
 @font-face { font-family: "Clara Atkinson"; src: url("font/AtkinsonHyperlegibleNext-Regular.ttf"); font-weight: 400; font-style: normal; }
 @font-face { font-family: "Clara Atkinson"; src: url("font/AtkinsonHyperlegibleNext-Bold.ttf"); font-weight: 700; font-style: normal; }
 @font-face { font-family: "Clara Atkinson"; src: url("font/AtkinsonHyperlegibleNext-Italic.ttf"); font-weight: 400; font-style: italic; }
 @font-face { font-family: "Clara Atkinson"; src: url("font/AtkinsonHyperlegibleNext-BoldItalic.ttf"); font-weight: 700; font-style: italic; }
 
 :root {
-  --fs: 36px;            /* dimensione del testo */
-  --lh: 1.8;             /* interlinea */
+  --fs: 36px;            /* text size */
+  --lh: 1.8;             /* line spacing */
   --font: "Clara Atkinson", Verdana, Arial, sans-serif;
   --fs-ui: max(22px, calc(var(--fs) * 0.62));
 }
 
-.tema-giallo  { --bg: #000; --fg: #ffe94d; --dim: #b9a93a; --riga: rgba(255,233,77,.13); --cambiato: rgba(0,200,255,.38); --accento: #00c8ff; --bordo: #ffe94d; }
-.tema-bianco  { --bg: #000; --fg: #fff;    --dim: #bbb;    --riga: rgba(255,255,255,.13); --cambiato: rgba(255,170,0,.42); --accento: #ffaa00; --bordo: #fff; }
-.tema-crema   { --bg: #fbf3df; --fg: #111; --dim: #555;    --riga: rgba(0,0,0,.08);      --cambiato: rgba(0,140,255,.25); --accento: #0050b4; --bordo: #111; }
+.theme-yellow  { --bg: #000; --fg: #ffe94d; --dim: #b9a93a; --line: rgba(255,233,77,.13); --changed: rgba(0,200,255,.38); --accent: #00c8ff; --border: #ffe94d; }
+.theme-white  { --bg: #000; --fg: #fff;    --dim: #bbb;    --line: rgba(255,255,255,.13); --changed: rgba(255,170,0,.42); --accent: #ffaa00; --border: #fff; }
+.theme-cream   { --bg: #fbf3df; --fg: #111; --dim: #555;    --line: rgba(0,0,0,.08);      --changed: rgba(0,140,255,.25); --accent: #0050b4; --border: #111; }
 
 * { box-sizing: border-box; }
 
@@ -27,124 +27,124 @@ html, body {
 
 body { display: flex; flex-direction: column; overflow: hidden; }
 
-/* ---------- riga di stato ---------- */
-#stato {
+/* ---------- status line ---------- */
+#status {
   display: flex; gap: 1.2em; align-items: baseline;
   padding: .35em .8em; font-size: var(--fs-ui);
-  border-bottom: 3px solid var(--bordo);
+  border-bottom: 3px solid var(--border);
   white-space: nowrap; overflow: hidden;
 }
-#dove { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+#where { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
 #info { color: var(--dim); }
-#salvataggio { margin-left: auto; color: var(--dim); }
+#save { margin-left: auto; color: var(--dim); }
 
 /* ---------- editor ---------- */
 #area { flex: 1; min-height: 0; display: flex; justify-content: center; }
 
-#contenitore {
+#sheet {
   position: relative;
   width: min(100%, 64ch);
   height: 100%;
   font-size: var(--fs);
 }
 
-#sfondo, #testo {
+#backdrop, #editor {
   position: absolute; inset: 0;
   margin: 0; border: 0;
-  padding: .6em 1em 50vh 1em;     /* spazio sotto per tenere la riga a meta' schermo */
+  padding: .6em 1em 50vh 1em;     /* room below to keep the line mid-screen */
   font: inherit; font-family: var(--font); font-size: var(--fs);
   line-height: var(--lh); letter-spacing: .01em;
   white-space: pre-wrap; overflow-wrap: break-word; word-break: normal;
   overflow-y: scroll; tab-size: 4;
 }
 
-#sfondo { color: transparent; pointer-events: none; }
-#sfondo .r { min-height: calc(var(--fs) * var(--lh)); }
-#sfondo .corrente { background: var(--riga); box-shadow: 0 0 0 .15em var(--riga); }
-#sfondo .cambiato { background: var(--cambiato); }
+#backdrop { color: transparent; pointer-events: none; }
+#backdrop .r { min-height: calc(var(--fs) * var(--lh)); }
+#backdrop .current { background: var(--line); box-shadow: 0 0 0 .15em var(--line); }
+#backdrop .changed { background: var(--changed); }
 
-#testo {
+#editor {
   background: transparent; color: var(--fg);
-  caret-color: var(--accento);
+  caret-color: var(--accent);
   resize: none; outline: none;
   scrollbar-width: thin; scrollbar-color: var(--dim) transparent;
 }
-#testo::placeholder { color: var(--dim); }
-#testo::selection { background: var(--accento); color: var(--bg); }
-#testo.occupato { opacity: .55; }
+#editor::placeholder { color: var(--dim); }
+#editor::selection { background: var(--accent); color: var(--bg); }
+#editor.busy { opacity: .55; }
 
-/* ---------- barra di Claude ---------- */
+/* ---------- Claude bar ---------- */
 #claude {
-  border-top: 3px solid var(--bordo);
+  border-top: 3px solid var(--border);
   padding: .4em .8em .6em;
   font-size: var(--fs-ui);
   display: flex; flex-direction: column; gap: .4em;
   max-height: 42vh;
 }
-#claude.nascosta { display: none; }
+#claude.hidden { display: none; }
 
-#risposta {
+#answer {
   white-space: pre-wrap; overflow-y: auto;
   line-height: 1.5; max-height: 26vh; min-height: 1.5em;
 }
-#risposta.errore { color: var(--accento); }
+#answer.error { color: var(--accent); }
 
-.riga-domanda { display: flex; gap: .5em; }
+.ask-row { display: flex; gap: .5em; }
 
-#domanda {
+#ask {
   flex: 1; font: inherit; font-size: var(--fs-ui); line-height: 1.4;
   background: var(--bg); color: var(--fg);
   border: 3px solid var(--dim); border-radius: .3em;
   padding: .3em .5em; resize: none;
-  caret-color: var(--accento);
+  caret-color: var(--accent);
 }
-#domanda:focus { border-color: var(--accento); outline: none; }
+#ask:focus { border-color: var(--accent); outline: none; }
 
-#invia {
+#send {
   font: inherit; font-size: var(--fs-ui); font-weight: 700;
   background: var(--fg); color: var(--bg);
   border: 0; border-radius: .3em; padding: 0 .9em; cursor: pointer;
 }
 
-/* ---------- Claude al lavoro ---------- */
-#lavoro {
+/* ---------- Claude at work ---------- */
+#working {
   position: fixed; top: 4.5em; left: 50%; transform: translateX(-50%);
-  background: var(--accento); color: var(--bg);
+  background: var(--accent); color: var(--bg);
   font-size: var(--fs-ui); font-weight: 700;
   padding: .4em 1.2em; border-radius: .4em;
-  animation: pulsa 1.6s ease-in-out infinite;
+  animation: pulse 1.6s ease-in-out infinite;
 }
-@keyframes pulsa { 50% { opacity: .65; } }
+@keyframes pulse { 50% { opacity: .65; } }
 
-/* ---------- pannelli (apri, nuovo) ---------- */
-#velo {
+/* ---------- panels (open, new, language) ---------- */
+#overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,.78);
   display: flex; align-items: flex-start; justify-content: center;
   padding-top: 6vh;
 }
-#velo[hidden], #lavoro[hidden], #avviso[hidden] { display: none; }
+#overlay[hidden], #working[hidden], #notice[hidden] { display: none; }
 
-#pannello {
+#panel {
   background: var(--bg); color: var(--fg);
-  border: 4px solid var(--bordo); border-radius: .4em;
+  border: 4px solid var(--border); border-radius: .4em;
   width: min(94vw, 40em); max-height: 86vh; overflow-y: auto;
   font-size: var(--fs-ui); padding: .6em 1em;
 }
-#pannello h2 { margin: .2em 0 .5em; font-size: 1.15em; }
-#lista { list-style: none; margin: 0; padding: 0; }
-#lista li { padding: .3em .5em; border-radius: .3em; border: 3px solid transparent; }
-#lista li.scelto { border-color: var(--accento); background: var(--riga); font-weight: 700; }
-#lista li .gruppo { color: var(--dim); font-weight: 400; }
-#campo {
+#panel h2 { margin: .2em 0 .5em; font-size: 1.15em; }
+#list { list-style: none; margin: 0; padding: 0; }
+#list li { padding: .3em .5em; border-radius: .3em; border: 3px solid transparent; }
+#list li.chosen { border-color: var(--accent); background: var(--line); font-weight: 700; }
+#list li .group { color: var(--dim); font-weight: 400; }
+#field {
   width: 100%; font: inherit; font-size: var(--fs-ui);
   background: var(--bg); color: var(--fg);
-  border: 3px solid var(--accento); border-radius: .3em; padding: .3em .5em;
+  border: 3px solid var(--accent); border-radius: .3em; padding: .3em .5em;
   outline: none;
 }
-#pannello-aiuto { color: var(--dim); margin: .6em 0 .2em; }
+#panel-help { color: var(--dim); margin: .6em 0 .2em; }
 
-/* ---------- avviso grande ---------- */
-#avviso {
+/* ---------- big notice ---------- */
+#notice {
   position: fixed; left: 50%; bottom: 46vh; transform: translateX(-50%);
   max-width: 90vw; background: var(--fg); color: var(--bg);
   font-size: var(--fs-ui); font-weight: 700;

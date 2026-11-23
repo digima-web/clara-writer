@@ -1,0 +1,181 @@
+{
+  "name": "Italiano",
+  "speech": "it-IT",
+  "preferredVoices": [
+    "Isabella",
+    "Elsa",
+    "Diego"
+  ],
+  "folders": {
+    "articles": "Articoli",
+    "books": "Libri",
+    "exports": "Esportati",
+    "trash": "Cestino",
+    "versions": "Versioni"
+  },
+  "notes_file": "00 Indice e note",
+  "chapter_default": "Capitolo 1",
+  "claude_voice": "Le tue risposte vengono mostrate in grande e lette a voce a un autore che vede molto poco. Rispondi sempre in italiano, con frasi brevi e semplici, in testo normale: niente markdown, niente tabelle, niente elenchi lunghi, niente simboli. Inizia dicendo cosa hai fatto o trovato. Non modificare mai il testo se non te lo chiede esplicitamente. Segui le regole di CLAUDE.md.",
+  "dictation": {
+    "quotes": [
+      "«",
+      "»"
+    ],
+    "rules": [
+      [
+        "punto e a capo",
+        ".\\n"
+      ],
+      [
+        "nuovo paragrafo",
+        "\\n\\n"
+      ],
+      [
+        "a capo",
+        "\\n"
+      ],
+      [
+        "punto interrogativo",
+        "?"
+      ],
+      [
+        "punto esclamativo",
+        "!"
+      ],
+      [
+        "punto e virgola",
+        ";"
+      ],
+      [
+        "due punti",
+        ":"
+      ],
+      [
+        "virgola",
+        ","
+      ],
+      [
+        "punto",
+        "."
+      ],
+      [
+        "apri virgolette",
+        "«"
+      ],
+      [
+        "chiudi virgolette",
+        "»"
+      ]
+    ]
+  },
+  "ui": {
+    "noTextOpen": "Nessun testo aperto",
+    "article": "Articolo",
+    "book": "Libro",
+    "labelBook": "Libro: {book} › {name}",
+    "labelArticle": "Articolo: {name}",
+    "statusLine": "riga {line} · {words} parole · {chars} battute",
+    "saved": "Salvato",
+    "notSaved": "NON SALVATO",
+    "cannotSave": "Attenzione: non riesco a salvare. {error}",
+    "programClosed": "Programma chiuso?",
+    "genericError": "Errore del programma",
+    "placeholderEditor": "Premi F6 per aprire un testo, F7 per crearne uno nuovo.",
+    "placeholderAsk": "Chiedi a Claude, poi premi Invio",
+    "send": "Invia",
+    "working": "Claude sta lavorando…",
+    "welcome": "Benvenuto. Premi F6 per aprire un testo, F7 per crearne uno nuovo, F4 per chiedere a Claude.",
+    "ready": "Clara Writer è pronto.",
+    "readyHint": "Premi F6 per aprire un testo, F7 per crearne uno nuovo.",
+    "claudeMissing": "Attenzione: Claude Code non è installato o non è raggiungibile. L'editor funziona lo stesso.",
+    "opened": "Aperto. {label}",
+    "cannotOpen": "Non riesco ad aprire il testo. {error}",
+    "nothingToRead": "Non c'è niente da leggere dopo il cursore.",
+    "dictUnavailable": "La dettatura non è disponibile. Usa il tasto Windows più H.",
+    "openFirst": "Apri prima un testo.",
+    "listening": "Ti ascolto… (F5 per finire)",
+    "micNotAllowed": "Il microfono non è permesso. Serve dare il permesso a Edge.",
+    "dictNoService": "La dettatura di Edge non risponde. Prova con il tasto Windows più H.",
+    "noMic": "Non trovo il microfono. Controlla che sia collegato.",
+    "dictStartFailed": "Non riesco ad avviare la dettatura.",
+    "request": "Richiesta: {text}",
+    "undoHint": "Per annullare le modifiche di Claude premi F8",
+    "error": "Errore: {error}",
+    "errorSpoken": "C'è stato un errore. {error}",
+    "cannotUndo": "Non riesco ad annullare. {error}",
+    "newConversation": "Nuova conversazione con Claude.",
+    "newConversationSpoken": "Ho iniziato una nuova conversazione con Claude.",
+    "openToExport": "Apri prima un testo da esportare.",
+    "exporting": "Sto creando il file Word…",
+    "panelHelp": "Frecce su e giù per scegliere, Invio per confermare, Esc per uscire.",
+    "typeHelp": "Scrivi e premi Invio. Esc per uscire.",
+    "typeAndEnter": "{title}. Scrivi e premi Invio.",
+    "emptyTitle": "Il titolo è vuoto.",
+    "cannotList": "Non riesco a leggere l'elenco dei testi.",
+    "noTexts": "Non ci sono ancora testi. Premi F7 per crearne uno.",
+    "openTitle": "Apri un testo",
+    "whatCreate": "Cosa vuoi creare?",
+    "newArticle": "Nuovo articolo",
+    "newBook": "Nuovo libro",
+    "newChapterIn": "Nuovo capitolo nel libro {book}",
+    "titleArticle": "Titolo del nuovo articolo",
+    "titleBook": "Titolo del nuovo libro",
+    "titleChapter": "Titolo del nuovo capitolo",
+    "cannotCreate": "Non riesco a crearlo. {error}",
+    "chooseLanguage": "Scegli la lingua",
+    "languageSet": "Lingua: {name}",
+    "whereNone": "Nessun testo aperto. Premi F6 per aprirne uno.",
+    "posStart": "all'inizio",
+    "posEnd": "alla fine",
+    "posLine": "alla riga {line} di {total}",
+    "whereAmI": "{label}. Sei {pos}. Il testo ha {words} parole e {chars} battute.",
+    "help": "F1, dove sono. F2, mostra o nasconde Claude. F3, leggi dal cursore. F4, chiedi a Claude. F5, inizia e finisce la dettatura. F6, apri. F7, nuovo. F8, annulla le modifiche di Claude. F9, carattere. F10, colori. Maiuscolo e F10, lingua. F12, esporta in Word. Control più e meno, grandezza del testo. Esc, ferma la voce.",
+    "textSize": "Testo {size}",
+    "lineSpacing": "Interlinea {value}",
+    "claudeVisible": "Claude visibile.",
+    "textOnly": "Solo testo.",
+    "speed": "Velocità {value}",
+    "decimalSpoken": " virgola ",
+    "autoReadOn": "Leggo le risposte di Claude.",
+    "autoReadOff": "Non leggo più le risposte di Claude.",
+    "font": "Carattere {name}",
+    "theme": "Colori: {name}",
+    "themes": [
+      "giallo su nero",
+      "bianco su nero",
+      "nero su crema"
+    ]
+  },
+  "server": {
+    "missingPath": "Percorso mancante",
+    "outsideFolder": "Percorso fuori dalla cartella di scrittura",
+    "onlyMd": "Si possono salvare solo file .md",
+    "missingTitle": "Manca il titolo",
+    "bookExists": "Esiste già un libro con questo titolo",
+    "bookNotFound": "Libro non trovato",
+    "unknownType": "Tipo sconosciuto",
+    "textExists": "Esiste già un testo con questo nome",
+    "notesTitle": "{book}: indice e note",
+    "claudeNotFound": "Non trovo Claude Code su questo computer.",
+    "claudeTimeout": "Claude ci ha messo troppo tempo e l'ho fermato. Il testo non è cambiato.",
+    "claudeCannotStart": "Non riesco ad avviare Claude Code: {error}",
+    "claudeBadReply": "Claude non ha risposto come previsto.",
+    "genericError": "Si è verificato un errore.",
+    "openedFile": "L'autore ha aperto il file: {path}",
+    "cursorLine": "Il cursore è alla riga {line}.",
+    "selection": "Testo selezionato dall'autore:",
+    "noFile": "L'autore non ha nessun file aperto.",
+    "authorRequest": "Richiesta dell'autore:",
+    "undone": "Ho annullato l'ultima modifica di Claude.",
+    "undoneSuffix": "(annullato {stamp})",
+    "nothingToUndo": "Non ci sono modifiche di Claude da annullare.",
+    "pandocMissing": "Non trovo Pandoc: serve per creare il file Word.",
+    "pandocFailed": "Pandoc non è riuscito a creare il file Word. Il file è forse aperto in Word?",
+    "exportedBook": "Ho esportato in Word il libro {name}, {n} capitoli. Il file è nella cartella {folder}.",
+    "exportedArticle": "Ho esportato in Word l'articolo {name}. Il file è nella cartella {folder}.",
+    "fileNotFound": "File non trovato",
+    "busy": "Claude sta già lavorando",
+    "notAllowed": "Richiesta non permessa",
+    "unknownCommand": "Comando sconosciuto"
+  }
+}

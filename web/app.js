@@ -1,72 +1,113 @@
-/* Clara Writer: logica dell'editor */
+/* Clara Writer: editor logic
+ * Copyright (C) 2026 Francesco Bonomelli. GNU GPL v3, see LICENSE.
+ * Every text the user sees or hears comes from lang/<code>.json (see t()).
+ */
 "use strict";
 
 const $ = (id) => document.getElementById(id);
-const testo = $("testo"), sfondo = $("sfondo"), domanda = $("domanda"), risposta = $("risposta");
-const barra = $("claude"), velo = $("velo"), lista = $("lista"), campo = $("campo");
+const editor = $("editor"), backdrop = $("backdrop"), ask = $("ask"), answer = $("answer");
+const claudeBar = $("claude"), overlay = $("overlay"), list = $("list"), field = $("field");
 
-/* ------------------------------------------------------------ impostazioni */
+/* ------------------------------------------------------------ language */
 
-const PREDEFINITE = { fs: 36, lh: 1.8, font: 0, tema: 0, velocita: 1, autolettura: true, barra: true, ultimo: "" };
-const FONT = ['"Clara Atkinson", Verdana, sans-serif', "Verdana, sans-serif", "Arial, sans-serif"];
-const NOMI_FONT = ["Atkinson", "Verdana", "Arial"];
-const TEMI = ["tema-giallo", "tema-bianco", "tema-crema"];
-const NOMI_TEMI = ["giallo su nero", "bianco su nero", "nero su crema"];
-const VELOCITA = [0.8, 1, 1.2, 1.4, 1.6];
+let L = { ui: {}, dictation: { rules: [] }, speech: "en-US" };
+let languages = [];
+let langCode = "en";
+let FOLDERS = { articles: "Articles", books: "Books" };   // names of the folders in this workspace
 
-let imp = { ...PREDEFINITE };
-try { imp = { ...PREDEFINITE, ...JSON.parse(localStorage.getItem("scrittoio") || "{}") }; } catch (e) { /* niente */ }
-function salvaImpostazioni() { try { localStorage.setItem("scrittoio", JSON.stringify(imp)); } catch (e) { /* niente */ } }
-
-function applicaImpostazioni() {
-  const r = document.documentElement.style;
-  r.setProperty("--fs", imp.fs + "px");
-  r.setProperty("--lh", imp.lh);
-  r.setProperty("--font", FONT[imp.font]);
-  document.body.className = TEMI[imp.tema];
-  barra.classList.toggle("nascosta", !imp.barra);
-  disegna();
+function t(key, vars) {
+  let s = (L.ui && L.ui[key]) || key;
+  if (vars) for (const [k, v] of Object.entries(vars)) s = s.split("{" + k + "}").join(String(v));
+  return s;
 }
 
-/* ------------------------------------------------------------ stato */
+function applyLanguage(info) {
+  L = info.pack; languages = info.available; langCode = info.code; FOLDERS = info.folders || FOLDERS;
+  document.documentElement.lang = langCode;
+  editor.lang = ask.lang = field.lang = langCode;
+  editor.placeholder = t("placeholderEditor");
+  ask.placeholder = t("placeholderAsk");
+  $("send").textContent = t("send");
+  $("working").textContent = t("working");
+  pickVoice();
+  updateInfo();
+}
 
-let aperto = "";            // percorso relativo del file aperto
-let modificato = false;
-let occupato = false;
-let cambiate = new Set();   // righe cambiate da Claude
-let timerSalva = null;
+/* ------------------------------------------------------------ settings */
 
-const etichetta = (p) => {
-  if (!p) return "Nessun testo aperto";
-  const parti = p.split("/");
-  const nome = parti.at(-1).replace(/\.md$/, "");
-  if (parti[0] === "Libri" && parti.length >= 3) return `Libro: ${parti[1]} › ${nome}`;
-  if (parti[0] === "Articoli") return `Articolo: ${nome}`;
-  return nome;
-};
-const libroDi = (p) => { const s = (p || "").split("/"); return s[0] === "Libri" && s.length >= 3 ? s[1] : ""; };
+const DEFAULTS = { fs: 36, lh: 1.8, font: 0, theme: 0, rate: 1, autoRead: true, bar: true, last: "" };
+const FONTS = ['"Clara Atkinson", Verdana, sans-serif', "Verdana, sans-serif", "Arial, sans-serif"];
+const FONT_NAMES = ["Atkinson", "Verdana", "Arial"];
+const THEMES = ["theme-yellow", "theme-white", "theme-cream"];
+const RATES = [0.8, 1, 1.2, 1.4, 1.6];
+
+let prefs = { ...DEFAULTS };
+try {
+  const old = localStorage.getItem("scrittoio");          // settings of the first Italian version
+  prefs = { ...DEFAULTS, ...JSON.parse(localStorage.getItem("clarawriter") || old || "{}") };
+  if (prefs.tema !== undefined && prefs.theme === undefined) prefs.theme = prefs.tema;
+  if (prefs.velocita !== undefined) prefs.rate = prefs.velocita;
+  if (prefs.ultimo !== undefined && !prefs.last) prefs.last = prefs.ultimo;
+} catch (e) { /* nothing */ }
+function savePrefs() { try { localStorage.setItem("clarawriter", JSON.stringify(prefs)); } catch (e) { /* nothing */ } }
+
+function applyPrefs() {
+  const r = document.documentElement.style;
+  r.setProperty("--fs", prefs.fs + "px");
+  r.setProperty("--lh", prefs.lh);
+  r.setProperty("--font", FONTS[prefs.font] || FONTS[0]);
+  document.body.className = THEMES[prefs.theme] || THEMES[0];
+  claudeBar.classList.toggle("hidden", !prefs.bar);
+  draw();
+}
+
+/* ------------------------------------------------------------ state */
+
+let current = "";            // relative path of the open file
+let dirty = false;
+let busy = false;
+let changedLines = new Set(); // lines changed by Claude
+let saveTimer = null;
+
+function label(p) {
+  if (!p) return t("noTextOpen");
+  const parts = p.split("/");
+  const name = parts.at(-1).replace(/\.md$/, "");
+  if (parts.length >= 3 && parts[0] === FOLDERS.books) return t("labelBook", { book: parts[1], name });
+  if (parts[0] === FOLDERS.articles) return t("labelArticle", { name });
+  return name;
+}
+const spokenLabel = (p) => label(p).replace("›", ",");
+const bookOf = (p) => { const s = (p || "").split("/"); return s.length >= 3 && s[0] === FOLDERS.books ? s[1] : ""; };
 
 /* ------------------------------------------------------------ server */
 
-async function api(percorso, dati) {
-  const opz = dati === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dati) };
-  const r = await fetch(percorso, opz);
+async function api(path, data) {
+  const opts = data === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) };
+  const r = await fetch(path, opts);
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.errore || "Errore del programma");
+  if (!r.ok) throw new Error(j.error || t("genericError"));
   return j;
 }
-
-/* ------------------------------------------------------------ voce: lettura */
-
-let voce = null;
-function scegliVoce() {
-  const it = speechSynthesis.getVoices().filter((v) => v.lang && v.lang.toLowerCase().startsWith("it"));
-  voce = it.find((v) => /natural/i.test(v.name) && /isabella|elsa/i.test(v.name))
-      || it.find((v) => /natural|online/i.test(v.name)) || it[0] || null;
+function logToServer(msg) {
+  try { fetch("/api/log", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ msg }) }); } catch (e) { /* nothing */ }
 }
-if ("speechSynthesis" in window) { scegliVoce(); speechSynthesis.onvoiceschanged = scegliVoce; }
 
-const pulisci = (t) => t
+/* ------------------------------------------------------------ voice: reading */
+
+let voice = null;
+function pickVoice() {
+  if (!("speechSynthesis" in window)) return;
+  const lang = (L.speech || "en-US").toLowerCase(), base = lang.slice(0, 2);
+  const all = speechSynthesis.getVoices().filter((v) => v.lang && v.lang.toLowerCase().startsWith(base));
+  const preferred = (L.preferredVoices || []).map((n) => n.toLowerCase());
+  voice = all.find((v) => /natural/i.test(v.name) && preferred.some((n) => v.name.toLowerCase().includes(n)))
+       || all.find((v) => /natural|online/i.test(v.name) && v.lang.toLowerCase() === lang)
+       || all.find((v) => /natural|online/i.test(v.name)) || all[0] || null;
+}
+if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = pickVoice;
+
+const plain = (s) => s
   .replace(/```[\s\S]*?```/g, " ")
   .replace(/^#{1,6}\s*/gm, "")
   .replace(/[*_`>|~]+/g, "")
@@ -75,156 +116,138 @@ const pulisci = (t) => t
   .replace(/[ \t]+/g, " ")
   .trim();
 
-function parla(t, poi) {
-  if (!("speechSynthesis" in window) || !t) { if (poi) poi(); return; }
+function utterance(text) {
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = L.speech || "en-US"; if (voice) u.voice = voice; u.rate = prefs.rate;
+  return u;
+}
+
+function speak(text, then) {
+  if (!("speechSynthesis" in window) || !text) { if (then) then(); return; }
   speechSynthesis.cancel();
-  const pezzi = pulisci(t).match(/[^.!?;\n]+[.!?;]*|\n+/g) || [];
-  const frasi = pezzi.map((s) => s.trim()).filter(Boolean);
-  frasi.forEach((f, i) => {
-    const u = new SpeechSynthesisUtterance(f);
-    u.lang = "it-IT"; if (voce) u.voice = voce; u.rate = imp.velocita;
-    if (i === frasi.length - 1 && poi) u.onend = poi;
+  const parts = (plain(text).match(/[^.!?;\n]+[.!?;]*|\n+/g) || []).map((s) => s.trim()).filter(Boolean);
+  parts.forEach((p, i) => {
+    const u = utterance(p);
+    if (i === parts.length - 1 && then) u.onend = then;
     speechSynthesis.speak(u);
   });
 }
-function zitto() { if ("speechSynthesis" in window) speechSynthesis.cancel(); lettura = null; }
+function hush() { if ("speechSynthesis" in window) speechSynthesis.cancel(); reading = null; }
 
-/* lettura del testo dal cursore in poi, frase per frase, con la frase selezionata */
-let lettura = null;
-function leggiDalCursore() {
-  if (lettura) { zitto(); suono("stop"); return; }
-  const t = testo.value;
-  let pos = testo.selectionStart;
-  const frasi = [];
+/* reads the text from the cursor on, sentence by sentence, selecting each sentence */
+let reading = null;
+function readFromCursor() {
+  if (reading) { hush(); beep("stop"); return; }
+  const text = editor.value, pos = editor.selectionStart, sentences = [];
   const re = /[^.!?\n]+[.!?]*["»”]?/g;
-  re.lastIndex = 0;
   let m;
-  while ((m = re.exec(t))) {
+  while ((m = re.exec(text))) {
     if (m.index + m[0].length <= pos) continue;
-    const da = Math.max(m.index, pos);
-    const parte = t.slice(da, m.index + m[0].length);
-    if (pulisci(parte)) frasi.push({ da, a: m.index + m[0].length, testo: pulisci(parte) });
+    const from = Math.max(m.index, pos), to = m.index + m[0].length;
+    const s = plain(text.slice(from, to));
+    if (s) sentences.push({ from, to, s });
   }
-  if (!frasi.length) { avviso("Non c'è niente da leggere dopo il cursore.", true); return; }
+  if (!sentences.length) { notice(t("nothingToRead")); return; }
   speechSynthesis.cancel();
-  lettura = { frasi };
-  frasi.forEach((f, i) => {
-    const u = new SpeechSynthesisUtterance(f.testo);
-    u.lang = "it-IT"; if (voce) u.voice = voce; u.rate = imp.velocita;
-    u.onstart = () => { if (lettura) { testo.focus(); testo.setSelectionRange(f.da, f.a); centra(); disegna(); } };
-    if (i === frasi.length - 1) u.onend = () => { lettura = null; };
+  reading = { sentences };
+  sentences.forEach((x, i) => {
+    const u = utterance(x.s);
+    u.onstart = () => { if (reading) { editor.focus(); editor.setSelectionRange(x.from, x.to); centre(); draw(); } };
+    if (i === sentences.length - 1) u.onend = () => { reading = null; };
     speechSynthesis.speak(u);
   });
 }
 
-/* ------------------------------------------------------------ voce: dettatura */
+/* ------------------------------------------------------------ voice: dictation */
 
-const Riconoscimento = window.SpeechRecognition || window.webkitSpeechRecognition;
-let ascolto = null, bersaglio = null;
+const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognizer = null, target = null, dictating = false, restarts = 0, heard = false;
 
-const PUNTEGGIATURA = [
-  [/\bpunto e a capo\b/gi, ".\n"], [/\bnuovo paragrafo\b/gi, "\n\n"], [/\ba capo\b/gi, "\n"],
-  [/\bpunto interrogativo\b/gi, "?"], [/\bpunto esclamativo\b/gi, "!"], [/\bpunto e virgola\b/gi, ";"],
-  [/\bdue punti\b/gi, ":"], [/\bvirgola\b/gi, ","], [/\bpunto\b/gi, "."],
-  [/\bapri virgolette\b/gi, "«"], [/\bchiudi virgolette\b/gi, "»"],
-];
-function sistemaDettato(t) {
-  for (const [re, s] of PUNTEGGIATURA) t = t.replace(re, s);
-  return t.replace(/\s+([,.;:?!»])/g, "$1").replace(/«\s+/g, "«").replace(/[ \t]*\n[ \t]*/g, "\n").trim();
+function fixDictation(s) {
+  for (const [pattern, replacement] of (L.dictation.rules || [])) {
+    s = s.replace(new RegExp("\\b(" + pattern + ")\\b", "giu"), replacement.replace(/\\n/g, "\n"));
+  }
+  const q = L.dictation.quotes || ["“", "”"];
+  return s.replace(/\s+([,.;:?!])/g, "$1")
+    .split(q[0] + " ").join(q[0]).split(" " + q[1]).join(q[1])
+    .replace(/[ \t]*\n[ \t]*/g, "\n").trim();
 }
 
-function inserisci(el, frammento) {
-  const s = el.selectionStart, e = el.selectionEnd, v = el.value;
-  const prima = v.slice(0, s);
-  let f = frammento;
-  if (!/^[,.;:?!»\n]/.test(f) && prima && !/[\s«(]$/.test(prima)) f = " " + f;
-  if (!prima.trim() || /[.!?]\s*$/.test(prima) || /\n\s*$/.test(prima)) f = f.replace(/^(\s*)(\p{L})/u, (_, a, b) => a + b.toUpperCase());
+function insertText(el, fragment) {
+  const s = el.selectionStart, e = el.selectionEnd, before = el.value.slice(0, s);
+  let f = fragment;
+  if (!/^[,.;:?!\n]/.test(f) && before && !/[\s«“(]$/.test(before)) f = " " + f;
+  if (!before.trim() || /[.!?]\s*$/.test(before) || /\n\s*$/.test(before)) f = f.replace(/^(\s*)(\p{L})/u, (_, a, b) => a + b.toUpperCase());
   el.setRangeText(f, s, e, "end");
   el.dispatchEvent(new Event("input", { bubbles: true }));
 }
 
-/* registro: manda al server cosa succede, per capire i problemi */
-function registra(msg) {
-  try { fetch("/api/log", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ msg }) }); } catch (e) { /* niente */ }
-}
-
-let dettaturaAttiva = false, ripartenze = 0, haSentito = false;
-
-function nuovoAscolto() {
-  const r = new Riconoscimento();
-  r.lang = "it-IT"; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
-  r.onstart = () => registra("dettatura: avviata");
-  r.onaudiostart = () => registra("dettatura: microfono attivo");
-  r.onspeechstart = () => { haSentito = true; registra("dettatura: voce rilevata"); };
+function newRecognizer() {
+  const r = new Recognition();
+  r.lang = L.speech || "en-US"; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+  r.onstart = () => logToServer("dictation: started (" + r.lang + ")");
+  r.onaudiostart = () => logToServer("dictation: microphone on");
+  r.onspeechstart = () => { heard = true; logToServer("dictation: voice detected"); };
   r.onresult = (ev) => {
-    let provvisorio = "";
+    let interim = "";
     for (let i = ev.resultIndex; i < ev.results.length; i++) {
-      const ris = ev.results[i];
-      if (ris.isFinal) {
-        const t = sistemaDettato(ris[0].transcript);
-        registra("dettatura: testo ricevuto (" + t.length + " caratteri)");
-        if (t) inserisci(bersaglio, t);
-      } else provvisorio += ris[0].transcript;
+      const res = ev.results[i];
+      if (res.isFinal) {
+        const s = fixDictation(res[0].transcript);
+        logToServer("dictation: text received (" + s.length + " characters)");
+        if (s) insertText(target, s);
+      } else interim += res[0].transcript;
     }
-    mostraAvviso("🎤 " + (provvisorio || "Ti ascolto… (F5 per finire)"));
+    showNotice("🎤 " + (interim || t("listening")));
   };
   r.onerror = (ev) => {
-    registra("dettatura: errore " + ev.error + (ev.message ? " " + ev.message : ""));
-    if (ev.error === "not-allowed" || ev.error === "service-not-allowed") {
-      dettaturaAttiva = false;
-      avviso("Il microfono non è permesso. Serve dare il permesso a Edge.", true, 6000);
-    } else if (ev.error === "network") {
-      dettaturaAttiva = false;
-      avviso("La dettatura di Edge non risponde. Prova con Windows più H.", true, 6000);
-    } else if (ev.error === "audio-capture") {
-      dettaturaAttiva = false;
-      avviso("Non trovo il microfono. Controlla che sia collegato.", true, 6000);
-    }
+    logToServer("dictation: error " + ev.error + (ev.message ? " " + ev.message : ""));
+    const stopWith = { "not-allowed": "micNotAllowed", "service-not-allowed": "micNotAllowed", network: "dictNoService", "audio-capture": "noMic" }[ev.error];
+    if (stopWith) { dictating = false; notice(t(stopWith), true, 6000); }
   };
   r.onend = () => {
-    registra("dettatura: fermata");
-    if (dettaturaAttiva && ripartenze < 30) {      // pausa lunga: riparte da sola
-      ripartenze++;
-      try { ascolto = nuovoAscolto(); ascolto.start(); return; } catch (e) { registra("dettatura: ripartenza fallita " + e); }
+    logToServer("dictation: stopped");
+    if (dictating && restarts < 30) {          // long pause: start again by itself
+      restarts++;
+      try { recognizer = newRecognizer(); recognizer.start(); return; } catch (e) { logToServer("dictation: restart failed " + e); }
     }
-    ascolto = null; dettaturaAttiva = false; nascondiAvviso();
+    recognizer = null; dictating = false; hideNotice();
   };
   return r;
 }
 
-function iniziaDettatura() {
-  if (!Riconoscimento) { registra("dettatura: non disponibile in questo browser"); avviso("La dettatura non è disponibile. Usa Windows più H.", true); return; }
-  if (dettaturaAttiva) return;
-  zitto();
-  bersaglio = document.activeElement === domanda ? domanda : testo;
-  if (bersaglio === testo && (testo.readOnly || !aperto)) { avviso("Apri prima un testo.", true); return; }
-  dettaturaAttiva = true; ripartenze = 0; haSentito = false;
-  suono("via");
-  mostraAvviso("🎤 Ti ascolto… (F5 per finire)");
-  // aspetta che finisca il suono, cosi' il microfono non lo sente
-  setTimeout(() => {
-    if (!dettaturaAttiva) return;
-    try { ascolto = nuovoAscolto(); ascolto.start(); }
-    catch (e) { registra("dettatura: avvio fallito " + e); dettaturaAttiva = false; avviso("Non riesco ad avviare la dettatura.", true); }
+function startDictation() {
+  if (!Recognition) { logToServer("dictation: not available"); notice(t("dictUnavailable")); return; }
+  if (dictating) return;
+  hush();
+  target = document.activeElement === ask ? ask : editor;
+  if (target === editor && (editor.readOnly || !current)) { notice(t("openFirst")); return; }
+  dictating = true; restarts = 0; heard = false;
+  beep("start");
+  showNotice("🎤 " + t("listening"));
+  setTimeout(() => {           // wait for the beep, so the microphone does not hear it
+    if (!dictating) return;
+    try { recognizer = newRecognizer(); recognizer.start(); }
+    catch (e) { logToServer("dictation: start failed " + e); dictating = false; notice(t("dictStartFailed")); }
   }, 250);
 }
-function fermaDettatura() {
-  if (!dettaturaAttiva) return;
-  dettaturaAttiva = false;
-  if (ascolto) ascolto.stop();
-  suono("fine");
-  if (!haSentito) registra("dettatura: finita senza sentire la voce");
-  setTimeout(nascondiAvviso, 800);
+function stopDictation() {
+  if (!dictating) return;
+  dictating = false;
+  if (recognizer) recognizer.stop();
+  beep("end");
+  if (!heard) logToServer("dictation: finished without hearing a voice");
+  setTimeout(hideNotice, 800);
 }
 
-/* ------------------------------------------------------------ suoni */
+/* ------------------------------------------------------------ sounds */
 
 let audio = null;
-function suono(tipo) {
+function beep(kind) {
   try {
     audio = audio || new AudioContext();
-    const note = { via: [660], fine: [520], ok: [520, 780], errore: [220], lavoro: [440], stop: [380] }[tipo] || [500];
-    note.forEach((f, i) => {
+    const notes = { start: [660], end: [520], ok: [520, 780], error: [220], working: [440], stop: [380] }[kind] || [500];
+    notes.forEach((f, i) => {
       const o = audio.createOscillator(), g = audio.createGain();
       o.frequency.value = f; o.type = "sine";
       const t0 = audio.currentTime + i * 0.16;
@@ -232,456 +255,458 @@ function suono(tipo) {
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
       o.connect(g).connect(audio.destination); o.start(t0); o.stop(t0 + 0.15);
     });
-  } catch (e) { /* senza audio si continua */ }
+  } catch (e) { /* no audio: carry on */ }
 }
 
-/* ------------------------------------------------------------ avvisi */
+/* ------------------------------------------------------------ notices */
 
-let timerAvviso = null;
-function mostraAvviso(t) { const a = $("avviso"); a.textContent = t; a.hidden = false; clearTimeout(timerAvviso); }
-function nascondiAvviso() { $("avviso").hidden = true; }
-function avviso(t, aVoce = true, durata = 4000) {
-  mostraAvviso(t);
-  timerAvviso = setTimeout(nascondiAvviso, durata);
-  if (aVoce) parla(t);
+let noticeTimer = null;
+function showNotice(s) { const a = $("notice"); a.textContent = s; a.hidden = false; clearTimeout(noticeTimer); }
+function hideNotice() { $("notice").hidden = true; }
+function notice(s, aloud = true, ms = 4000) {
+  showNotice(s);
+  noticeTimer = setTimeout(hideNotice, ms);
+  if (aloud) speak(s);
 }
 
-/* ------------------------------------------------------------ disegno dell'editor */
+/* ------------------------------------------------------------ drawing the editor */
 
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-function rigaDelCursore() { return testo.value.slice(0, testo.selectionStart).split("\n").length - 1; }
+function cursorLine() { return editor.value.slice(0, editor.selectionStart).split("\n").length - 1; }
 
-function disegna() {
-  const righe = testo.value.split("\n");
-  const corrente = document.activeElement === testo || lettura ? rigaDelCursore() : -1;
+function draw() {
+  const lines = editor.value.split("\n");
+  const cur = document.activeElement === editor || reading ? cursorLine() : -1;
   let html = "";
-  righe.forEach((r, i) => {
-    const cls = "r" + (i === corrente ? " corrente" : "") + (cambiate.has(i) ? " cambiato" : "");
-    html += `<div class="${cls}">${r ? esc(r) : "​"}</div>`;
+  lines.forEach((line, i) => {
+    const cls = "r" + (i === cur ? " current" : "") + (changedLines.has(i) ? " changed" : "");
+    html += `<div class="${cls}">${line ? esc(line) : "​"}</div>`;
   });
-  sfondo.innerHTML = html;
-  sfondo.scrollTop = testo.scrollTop;
-  aggiornaInfo();
+  backdrop.innerHTML = html;
+  backdrop.scrollTop = editor.scrollTop;
+  updateInfo();
 }
 
-/* porta la riga del cursore a meta' schermo */
-function centra() {
-  const prima = testo.value.slice(0, testo.selectionStart);
-  const r = prima.split("\n").length - 1;
-  const div = sfondo.children[r];
+/* keeps the cursor line in the middle of the screen */
+function centre() {
+  const before = editor.value.slice(0, editor.selectionStart);
+  const r = before.split("\n").length - 1;
+  const div = backdrop.children[r];
   if (!div) return;
-  // posizione approssimata dentro il paragrafo: proporzione dei caratteri
-  const riga = testo.value.split("\n")[r] || "";
-  const colonna = prima.length - prima.lastIndexOf("\n") - 1;
-  const frazione = riga.length ? colonna / riga.length : 0;
-  const y = div.offsetTop + div.offsetHeight * frazione;
-  testo.scrollTop = Math.max(0, y - testo.clientHeight * 0.45);
-  sfondo.scrollTop = testo.scrollTop;
+  const line = editor.value.split("\n")[r] || "";
+  const col = before.length - before.lastIndexOf("\n") - 1;
+  const y = div.offsetTop + div.offsetHeight * (line.length ? col / line.length : 0);
+  editor.scrollTop = Math.max(0, y - editor.clientHeight * 0.45);
+  backdrop.scrollTop = editor.scrollTop;
 }
 
-function aggiornaInfo() {
-  $("dove").textContent = etichetta(aperto);
-  if (!aperto) { $("info").textContent = ""; return; }
-  const parole = (testo.value.match(/\p{L}+/gu) || []).length;
-  $("info").textContent = `riga ${rigaDelCursore() + 1} · ${parole} parole`;
+const wordCount = () => (editor.value.match(/\p{L}+/gu) || []).length;
+
+function updateInfo() {
+  $("where").textContent = label(current);
+  if (!current) { $("info").textContent = ""; return; }
+  $("info").textContent = t("statusLine", {
+    line: cursorLine() + 1, words: wordCount(), chars: editor.value.length.toLocaleString(langCode),
+  });
 }
 
-let inAttesa = false;
-function ridisegna(centrare) {
-  if (inAttesa) return;
-  inAttesa = true;
-  requestAnimationFrame(() => { inAttesa = false; disegna(); if (centrare) centra(); });
+let pending = false;
+function redraw(centreToo) {
+  if (pending) return;
+  pending = true;
+  requestAnimationFrame(() => { pending = false; draw(); if (centreToo) centre(); });
 }
 
-/* ------------------------------------------------------------ apertura e salvataggio */
+/* ------------------------------------------------------------ opening and saving */
 
-async function apri(percorso, quiet) {
-  await salvaOra();
+async function open(path, quiet) {
+  await saveNow();
   try {
-    const f = await api("/api/file?percorso=" + encodeURIComponent(percorso));
-    aperto = f.percorso;
-    testo.value = f.contenuto;
-    testo.readOnly = false;
-    cambiate.clear();
-    modificato = false;
-    imp.ultimo = aperto; salvaImpostazioni();
-    statoSalvataggio("Salvato");
-    testo.focus();
-    const fine = testo.value.length;
-    testo.setSelectionRange(fine, fine);
-    disegna(); centra();
-    if (!quiet) avviso("Aperto. " + etichetta(aperto).replace("›", ","), true, 2500);
+    const f = await api("/api/file?path=" + encodeURIComponent(path));
+    current = f.path;
+    editor.value = f.content;
+    editor.readOnly = false;
+    changedLines.clear();
+    dirty = false;
+    prefs.last = current; savePrefs();
+    saveState(t("saved"));
+    editor.focus();
+    editor.setSelectionRange(editor.value.length, editor.value.length);
+    draw(); centre();
+    if (!quiet) notice(t("opened", { label: spokenLabel(current) }), true, 2500);
   } catch (e) {
-    avviso("Non riesco ad aprire il testo. " + e.message, true);
+    notice(t("cannotOpen", { error: e.message }));
   }
 }
 
-function statoSalvataggio(t) { $("salvataggio").textContent = t; }
+function saveState(s) { $("save").textContent = s; }
 
-async function salvaOra() {
-  clearTimeout(timerSalva);
-  if (!aperto || !modificato) return;
-  const contenuto = testo.value;
+async function saveNow() {
+  clearTimeout(saveTimer);
+  if (!current || !dirty) return;
+  const content = editor.value;
   try {
-    await api("/api/salva", { percorso: aperto, contenuto });
-    if (testo.value === contenuto) { modificato = false; statoSalvataggio("Salvato"); }
+    await api("/api/save", { path: current, content });
+    if (editor.value === content) { dirty = false; saveState(t("saved")); }
   } catch (e) {
-    statoSalvataggio("NON SALVATO");
-    avviso("Attenzione: non riesco a salvare. " + e.message, true);
+    saveState(t("notSaved"));
+    notice(t("cannotSave", { error: e.message }));
   }
 }
 
-testo.addEventListener("input", () => {
-  modificato = true;
-  statoSalvataggio("…");
-  if (cambiate.size) cambiate.clear();
-  clearTimeout(timerSalva);
-  timerSalva = setTimeout(salvaOra, 2000);
-  ridisegna(true);
+editor.addEventListener("input", () => {
+  dirty = true;
+  saveState("…");
+  if (changedLines.size) changedLines.clear();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 2000);
+  redraw(true);
 });
-testo.addEventListener("scroll", () => { sfondo.scrollTop = testo.scrollTop; });
-testo.addEventListener("keyup", (e) => {
-  if (/^(Arrow|Page|Home|End)/.test(e.key)) ridisegna(true);
-});
-testo.addEventListener("click", () => ridisegna(false));
-testo.addEventListener("focus", () => ridisegna(false));
-testo.addEventListener("blur", () => ridisegna(false));
-window.addEventListener("resize", () => ridisegna(true));
+editor.addEventListener("scroll", () => { backdrop.scrollTop = editor.scrollTop; });
+editor.addEventListener("keyup", (e) => { if (/^(Arrow|Page|Home|End)/.test(e.key)) redraw(true); });
+editor.addEventListener("click", () => redraw(false));
+editor.addEventListener("focus", () => redraw(false));
+editor.addEventListener("blur", () => redraw(false));
+window.addEventListener("resize", () => redraw(true));
 window.addEventListener("beforeunload", () => {
-  if (aperto && modificato) {
-    navigator.sendBeacon("/api/salva", new Blob([JSON.stringify({ percorso: aperto, contenuto: testo.value })], { type: "application/json" }));
+  if (current && dirty) {
+    navigator.sendBeacon("/api/save", new Blob([JSON.stringify({ path: current, content: editor.value })], { type: "application/json" }));
   }
 });
 
 /* ------------------------------------------------------------ Claude */
 
-let timerLavoro = null;
-function blocca(si) {
-  occupato = si;
-  testo.readOnly = si || !aperto;
-  testo.classList.toggle("occupato", si);
-  domanda.readOnly = si;
-  $("lavoro").hidden = !si;
-  clearInterval(timerLavoro);
-  if (si) timerLavoro = setInterval(() => suono("lavoro"), 2500);
+let workingTimer = null;
+function lock(on) {
+  busy = on;
+  editor.readOnly = on || !current;
+  editor.classList.toggle("busy", on);
+  ask.readOnly = on;
+  $("working").hidden = !on;
+  clearInterval(workingTimer);
+  if (on) workingTimer = setInterval(() => beep("working"), 2500);
 }
 
-/* righe nuove o cambiate rispetto al testo precedente (confronto per righe) */
-function righeCambiate(vecchio, nuovo) {
-  const a = vecchio.split("\n"), b = nuovo.split("\n");
+/* lines that are new or changed compared with the previous text (line-based diff) */
+function diffLines(oldText, newText) {
+  const a = oldText.split("\n"), b = newText.split("\n");
   const n = a.length, m = b.length;
   if (n * m > 4e6) return new Set(b.map((r, i) => (a.includes(r) ? -1 : i)).filter((i) => i >= 0));
-  const L = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  const T = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
   for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
-    L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
-  const uguali = new Set();
+    T[i][j] = a[i] === b[j] ? T[i + 1][j + 1] + 1 : Math.max(T[i + 1][j], T[i][j + 1]);
+  const same = new Set();
   let i = 0, j = 0;
   while (i < n && j < m) {
-    if (a[i] === b[j]) { uguali.add(j); i++; j++; }
-    else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+    if (a[i] === b[j]) { same.add(j); i++; j++; }
+    else if (T[i + 1][j] >= T[i][j + 1]) i++; else j++;
   }
   const out = new Set();
-  b.forEach((r, k) => { if (!uguali.has(k) && r.trim()) out.add(k); });
+  b.forEach((r, k) => { if (!same.has(k) && r.trim()) out.add(k); });
   return out;
 }
 
-async function chiediAClaude() {
-  const richiesta = domanda.value.trim();
-  if (!richiesta || occupato) return;
-  zitto();
-  clearTimeout(timerSalva);
-  const vecchio = testo.value;
-  const sel = testo.value.slice(testo.selectionStart, testo.selectionEnd);
-  blocca(true);
-  risposta.classList.remove("errore");
-  risposta.textContent = "Richiesta: " + richiesta;
+async function askClaude() {
+  const request = ask.value.trim();
+  if (!request || busy) return;
+  hush();
+  clearTimeout(saveTimer);
+  const oldText = editor.value;
+  const selection = editor.value.slice(editor.selectionStart, editor.selectionEnd);
+  lock(true);
+  answer.classList.remove("error");
+  answer.textContent = t("request", { text: request });
   try {
     const r = await api("/api/claude", {
-      richiesta, percorso: aperto, contenuto: aperto ? testo.value : undefined,
-      riga: aperto ? rigaDelCursore() + 1 : 0, selezione: sel,
+      request, path: current, content: current ? editor.value : undefined,
+      line: current ? cursorLine() + 1 : 0, selection,
     });
-    modificato = false; statoSalvataggio("Salvato");
-    domanda.value = "";
-    risposta.textContent = r.risposta;
-    risposta.classList.toggle("errore", r.errore);
-    risposta.scrollTop = 0;
-    blocca(false);
-    suono(r.errore ? "errore" : "ok");
+    dirty = false; saveState(t("saved"));
+    ask.value = "";
+    answer.textContent = r.reply;
+    answer.classList.toggle("error", r.error);
+    answer.scrollTop = 0;
+    lock(false);
+    beep(r.error ? "error" : "ok");
 
-    if (aperto && r.eliminati.includes(aperto)) {
-      aperto = ""; testo.value = ""; testo.readOnly = true; disegna();
-    } else if (aperto && r.modificati.includes(aperto)) {
-      const f = await api("/api/file?percorso=" + encodeURIComponent(aperto));
-      testo.value = f.contenuto;
-      cambiate = righeCambiate(vecchio, f.contenuto);
-      const prima = Math.min(...cambiate);
-      if (Number.isFinite(prima)) {
-        const pos = f.contenuto.split("\n").slice(0, prima).join("\n").length + (prima ? 1 : 0);
-        testo.setSelectionRange(pos, pos);
+    if (current && r.deleted.includes(current)) {
+      current = ""; editor.value = ""; editor.readOnly = true; draw();
+    } else if (current && r.changed.includes(current)) {
+      const f = await api("/api/file?path=" + encodeURIComponent(current));
+      editor.value = f.content;
+      changedLines = diffLines(oldText, f.content);
+      const first = Math.min(...changedLines);
+      if (Number.isFinite(first)) {
+        const pos = f.content.split("\n").slice(0, first).join("\n").length + (first ? 1 : 0);
+        editor.setSelectionRange(pos, pos);
       }
-      testo.focus(); disegna(); centra();
-      setTimeout(() => { if (cambiate.size) { cambiate.clear(); disegna(); } }, 60000);
-    } else if (r.creati.length === 1 && r.creati[0].endsWith(".md")) {
-      await apri(r.creati[0], true);
+      editor.focus(); draw(); centre();
+      setTimeout(() => { if (changedLines.size) { changedLines.clear(); draw(); } }, 60000);
+    } else if (r.created.length === 1 && r.created[0].endsWith(".md")) {
+      await open(r.created[0], true);
     }
-    if (imp.autolettura) parla(r.risposta);
-    if (r.annullabile) mostraAvviso("Per annullare le modifiche di Claude premi F8");
-    if (r.annullabile) timerAvviso = setTimeout(nascondiAvviso, 5000);
+    if (prefs.autoRead) speak(r.reply);
+    if (r.undoable) { showNotice(t("undoHint")); noticeTimer = setTimeout(hideNotice, 5000); }
   } catch (e) {
-    blocca(false);
-    suono("errore");
-    risposta.classList.add("errore");
-    risposta.textContent = "Errore: " + e.message;
-    parla("C'è stato un errore. " + e.message);
+    lock(false);
+    beep("error");
+    answer.classList.add("error");
+    answer.textContent = t("error", { error: e.message });
+    speak(t("errorSpoken", { error: e.message }));
   }
 }
 
-$("invia").addEventListener("click", chiediAClaude);
-domanda.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); chiediAClaude(); }
-});
+$("send").addEventListener("click", askClaude);
+ask.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); askClaude(); } });
 
-async function annullaClaude() {
-  if (occupato) return;
-  await salvaOra();
+async function undoClaude() {
+  if (busy) return;
+  await saveNow();
   try {
-    const r = await api("/api/annulla", {});
-    if (r.ok && aperto) {
-      const f = await api("/api/file?percorso=" + encodeURIComponent(aperto)).catch(() => null);
-      if (f) { testo.value = f.contenuto; cambiate.clear(); disegna(); centra(); }
+    const r = await api("/api/undo", {});
+    if (r.ok && current) {
+      const f = await api("/api/file?path=" + encodeURIComponent(current)).catch(() => null);
+      if (f) { editor.value = f.content; changedLines.clear(); draw(); centre(); }
     }
-    suono(r.ok ? "ok" : "errore");
-    avviso(r.messaggio, true);
-  } catch (e) { avviso("Non riesco ad annullare. " + e.message, true); }
+    beep(r.ok ? "ok" : "error");
+    notice(r.message);
+  } catch (e) { notice(t("cannotUndo", { error: e.message })); }
 }
 
-async function nuovaConversazione() {
-  await api("/api/nuova-conversazione", {}).catch(() => null);
-  risposta.textContent = "Nuova conversazione con Claude.";
-  avviso("Ho iniziato una nuova conversazione con Claude.", true);
+async function newConversation() {
+  await api("/api/new-conversation", {}).catch(() => null);
+  answer.textContent = t("newConversation");
+  notice(t("newConversationSpoken"));
 }
 
-/* ------------------------------------------------------------ esporta in Word */
+/* ------------------------------------------------------------ export to Word */
 
-async function esportaWord() {
-  if (!aperto) { avviso("Apri prima un testo da esportare.", true); return; }
-  await salvaOra();
-  mostraAvviso("Sto creando il file Word…");
+async function exportWord() {
+  if (!current) { notice(t("openToExport")); return; }
+  await saveNow();
+  showNotice(t("exporting"));
   try {
-    const r = await api("/api/esporta", { percorso: aperto });
-    suono("ok"); avviso(r.messaggio, true, 6000);
-  } catch (e) { suono("errore"); avviso(e.message, true, 6000); }
+    const r = await api("/api/export", { path: current });
+    beep("ok"); notice(r.message, true, 6000);
+  } catch (e) { beep("error"); notice(e.message, true, 6000); }
 }
 
-/* ------------------------------------------------------------ pannelli: apri e nuovo */
+/* ------------------------------------------------------------ panels: open, new, language */
 
-let voci = [], scelta = 0, alScegliere = null, alConfermaCampo = null, focusPrima = null;
+let items = [], choice = 0, onChoose = null, onField = null, focusBefore = null;
 
-function apriPannello(titolo, elementi, quandoScelto, aiuto) {
-  zitto();
-  focusPrima = document.activeElement;
-  $("pannello-titolo").textContent = titolo;
-  $("pannello-aiuto").textContent = aiuto || "Frecce su e giù per scegliere, Invio per confermare, Esc per uscire.";
-  voci = elementi; scelta = 0; alScegliere = quandoScelto; alConfermaCampo = null;
-  campo.hidden = true;
-  lista.innerHTML = "";
-  elementi.forEach((v, i) => {
+function openPanel(title, entries, chosen, help) {
+  hush();
+  focusBefore = document.activeElement;
+  $("panel-title").textContent = title;
+  $("panel-help").textContent = help || t("panelHelp");
+  items = entries; choice = 0; onChoose = chosen; onField = null;
+  field.hidden = true;
+  list.innerHTML = "";
+  entries.forEach((v, i) => {
     const li = document.createElement("li");
-    li.innerHTML = v.gruppo ? `<span class="gruppo">${esc(v.gruppo)} › </span>${esc(v.testo)}` : esc(v.testo);
-    li.addEventListener("click", () => { scelta = i; conferma(); });
-    lista.appendChild(li);
+    li.innerHTML = v.group ? `<span class="group">${esc(v.group)} › </span>${esc(v.text)}` : esc(v.text);
+    li.addEventListener("click", () => { choice = i; confirmChoice(); });
+    list.appendChild(li);
   });
-  velo.hidden = false;
-  evidenzia(true, titolo);
+  overlay.hidden = false;
+  highlight(true, title);
 }
-function chiediTitolo(titolo, quandoScritto) {
-  zitto();
-  focusPrima = focusPrima || document.activeElement;
-  $("pannello-titolo").textContent = titolo;
-  $("pannello-aiuto").textContent = "Scrivi e premi Invio. Esc per uscire.";
-  lista.innerHTML = ""; voci = [];
-  campo.hidden = false; campo.value = "";
-  alConfermaCampo = quandoScritto;
-  velo.hidden = false;
-  campo.focus();
-  parla(titolo + ". Scrivi e premi Invio.");
+function askTitle(title, done) {
+  hush();
+  focusBefore = focusBefore || document.activeElement;
+  $("panel-title").textContent = title;
+  $("panel-help").textContent = t("typeHelp");
+  list.innerHTML = ""; items = [];
+  field.hidden = false; field.value = "";
+  onField = done;
+  overlay.hidden = false;
+  field.focus();
+  speak(t("typeAndEnter", { title }));
 }
-function chiudiPannello() {
-  velo.hidden = true; campo.hidden = true; alConfermaCampo = null; zitto();
-  if (focusPrima) focusPrima.focus(); focusPrima = null;
+function closePanel() {
+  overlay.hidden = true; field.hidden = true; onField = null; hush();
+  if (focusBefore) focusBefore.focus(); focusBefore = null;
 }
-function evidenzia(annuncia, premessa) {
-  [...lista.children].forEach((li, i) => li.classList.toggle("scelto", i === scelta));
-  const li = lista.children[scelta];
+function highlight(aloud, intro) {
+  [...list.children].forEach((li, i) => li.classList.toggle("chosen", i === choice));
+  const li = list.children[choice];
   if (li) li.scrollIntoView({ block: "nearest" });
-  const v = voci[scelta];
-  if (annuncia && v) parla((premessa ? premessa + ". " : "") + (v.gruppo ? v.gruppo + ", " : "") + v.testo);
+  const v = items[choice];
+  if (aloud && v) speak((intro ? intro + ". " : "") + (v.group ? v.group + ", " : "") + v.text);
 }
-function conferma() {
-  const v = voci[scelta], f = alScegliere;
+function confirmChoice() {
+  const v = items[choice], f = onChoose;
   if (!v) return;
-  velo.hidden = true;
+  overlay.hidden = true;
   f(v);
 }
 
-campo.addEventListener("keydown", (e) => {
+field.addEventListener("keydown", (e) => {
   if (e.key === "Enter") {
     e.preventDefault();
-    const t = campo.value.trim(), f = alConfermaCampo;
-    if (!t) { parla("Il titolo è vuoto."); return; }
-    chiudiPannello();
-    f(t);
+    const s = field.value.trim(), f = onField;
+    if (!s) { speak(t("emptyTitle")); return; }
+    closePanel();
+    f(s);
   }
 });
 
-async function pannelloApri() {
-  await salvaOra();
-  let el;
-  try { el = await api("/api/elenco"); } catch (e) { avviso("Non riesco a leggere i testi.", true); return; }
-  if (!el.voci.length) { avviso("Non ci sono ancora testi. Premi F7 per crearne uno.", true); return; }
-  const elementi = el.voci.map((v) => ({
-    percorso: v.percorso,
-    gruppo: v.tipo === "articolo" ? "Articolo" : "Libro " + v.libro,
-    testo: v.nome,
+async function openPanelTexts() {
+  await saveNow();
+  let res;
+  try { res = await api("/api/list"); } catch (e) { notice(t("cannotList")); return; }
+  if (!res.items.length) { notice(t("noTexts")); return; }
+  const entries = res.items.map((v) => ({
+    path: v.path, group: v.type === "article" ? t("article") : t("book") + " " + v.book, text: v.name,
   }));
-  apriPannello("Apri un testo", elementi, (v) => { focusPrima = null; apri(v.percorso); });
-  const i = elementi.findIndex((v) => v.percorso === aperto);
-  if (i >= 0) { scelta = i; evidenzia(false); }
+  openPanel(t("openTitle"), entries, (v) => { focusBefore = null; open(v.path); });
+  const i = entries.findIndex((v) => v.path === current);
+  if (i >= 0) { choice = i; highlight(false); }
 }
 
-function pannelloNuovo() {
-  const libro = libroDi(aperto);
-  const scelte = [{ tipo: "articolo", testo: "Nuovo articolo" }, { tipo: "libro", testo: "Nuovo libro" }];
-  if (libro) scelte.push({ tipo: "capitolo", testo: `Nuovo capitolo nel libro ${libro}` });
-  apriPannello("Cosa vuoi creare?", scelte, (v) => {
-    const domandaTitolo = { articolo: "Titolo del nuovo articolo", libro: "Titolo del nuovo libro", capitolo: "Titolo del nuovo capitolo" }[v.tipo];
-    chiediTitolo(domandaTitolo, async (titolo) => {
+function openPanelNew() {
+  const book = bookOf(current);
+  const choices = [{ type: "article", text: t("newArticle") }, { type: "book", text: t("newBook") }];
+  if (book) choices.push({ type: "chapter", text: t("newChapterIn", { book }) });
+  openPanel(t("whatCreate"), choices, (v) => {
+    const prompt = { article: t("titleArticle"), book: t("titleBook"), chapter: t("titleChapter") }[v.type];
+    askTitle(prompt, async (title) => {
       try {
-        const r = await api("/api/nuovo", { tipo: v.tipo, titolo, libro });
-        await apri(r.percorso);
-      } catch (e) { avviso("Non riesco a crearlo. " + e.message, true); }
+        const r = await api("/api/new", { type: v.type, title, book });
+        await open(r.path);
+      } catch (e) { notice(t("cannotCreate", { error: e.message })); }
     });
   });
 }
 
-/* ------------------------------------------------------------ tasti */
-
-function doveSono() {
-  if (!aperto) { avviso("Nessun testo aperto. Premi F6 per aprirne uno.", true); return; }
-  const tot = testo.value.split("\n").length, r = rigaDelCursore() + 1;
-  const parole = (testo.value.match(/\p{L}+/gu) || []).length;
-  const pos = r === 1 ? "all'inizio" : r >= tot ? "alla fine" : `alla riga ${r} di ${tot}`;
-  avviso(`${etichetta(aperto).replace("›", ",")}. Sei ${pos}. Il testo ha ${parole} parole.`, true, 5000);
+function openPanelLanguage() {
+  const entries = languages.map((l) => ({ code: l.code, text: l.name }));
+  openPanel(t("chooseLanguage"), entries, async (v) => {
+    try {
+      applyLanguage(await api("/api/lang", { code: v.code }));
+      focusBefore = null;
+      if (current) editor.focus();
+      notice(t("languageSet", { name: v.text }));
+    } catch (e) { notice(e.message); }
+  });
+  const i = entries.findIndex((v) => v.code === langCode);
+  if (i >= 0) { choice = i; highlight(false); }
 }
 
-const AIUTO = "F1, dove sono. F2, mostra o nasconde Claude. F3, leggi dal cursore. F4, chiedi a Claude. " +
-  "F5, inizia e finisce la dettatura. F6, apri. F7, nuovo. F8, annulla le modifiche di Claude. " +
-  "F9, carattere. F10, colori. F12, esporta in Word. Control più e meno, grandezza del testo. Esc, ferma la lettura.";
+/* ------------------------------------------------------------ keys */
+
+function whereAmI() {
+  if (!current) { notice(t("whereNone")); return; }
+  const total = editor.value.split("\n").length, r = cursorLine() + 1;
+  const pos = r === 1 ? t("posStart") : r >= total ? t("posEnd") : t("posLine", { line: r, total });
+  notice(t("whereAmI", { label: spokenLabel(current), pos, words: wordCount(), chars: editor.value.length }), true, 5000);
+}
 
 function zoom(delta) {
-  imp.fs = Math.min(96, Math.max(20, imp.fs + delta));
-  salvaImpostazioni(); applicaImpostazioni(); centra();
-  mostraAvviso(`Testo ${imp.fs}`); timerAvviso = setTimeout(nascondiAvviso, 1200);
+  prefs.fs = Math.min(96, Math.max(20, prefs.fs + delta));
+  savePrefs(); applyPrefs(); centre();
+  showNotice(t("textSize", { size: prefs.fs })); noticeTimer = setTimeout(hideNotice, 1200);
 }
 
 document.addEventListener("keydown", (e) => {
   const k = e.key;
-  // pannello aperto: frecce, invio, esc
-  if (!velo.hidden) {
-    if (k === "Escape") { e.preventDefault(); chiudiPannello(); return; }
-    if (campo.hidden) {
-      if (k === "ArrowDown") { e.preventDefault(); scelta = Math.min(voci.length - 1, scelta + 1); evidenzia(true); return; }
-      if (k === "ArrowUp") { e.preventDefault(); scelta = Math.max(0, scelta - 1); evidenzia(true); return; }
-      if (k === "Enter") { e.preventDefault(); conferma(); return; }
+  // a panel is open: arrows, Enter, Esc
+  if (!overlay.hidden) {
+    if (k === "Escape") { e.preventDefault(); closePanel(); return; }
+    if (field.hidden) {
+      if (k === "ArrowDown") { e.preventDefault(); choice = Math.min(items.length - 1, choice + 1); highlight(true); return; }
+      if (k === "ArrowUp") { e.preventDefault(); choice = Math.max(0, choice - 1); highlight(true); return; }
+      if (k === "Enter") { e.preventDefault(); confirmChoice(); return; }
     }
     if (/^F\d+$/.test(k)) e.preventDefault();
     return;
   }
 
-  // grandezza del testo e interlinea
+  // text size and line spacing
   if (e.ctrlKey && !e.altKey) {
-    const piu = k === "+" || k === "=" || k === "*" || e.code === "NumpadAdd";
-    const meno = k === "-" || k === "_" || e.code === "NumpadSubtract";
-    if (piu || meno) {
+    const plus = k === "+" || k === "=" || k === "*" || e.code === "NumpadAdd";
+    const minus = k === "-" || k === "_" || e.code === "NumpadSubtract";
+    if (plus || minus) {
       e.preventDefault();
       if (e.shiftKey) {
-        imp.lh = Math.round(Math.min(2.6, Math.max(1.2, imp.lh + (piu ? 0.1 : -0.1))) * 10) / 10;
-        salvaImpostazioni(); applicaImpostazioni();
-        mostraAvviso(`Interlinea ${imp.lh}`); timerAvviso = setTimeout(nascondiAvviso, 1200);
-      } else zoom(piu ? 4 : -4);
+        prefs.lh = Math.round(Math.min(2.6, Math.max(1.2, prefs.lh + (plus ? 0.1 : -0.1))) * 10) / 10;
+        savePrefs(); applyPrefs();
+        showNotice(t("lineSpacing", { value: prefs.lh })); noticeTimer = setTimeout(hideNotice, 1200);
+      } else zoom(plus ? 4 : -4);
       return;
     }
-    if (k === "0") { e.preventDefault(); imp.fs = PREDEFINITE.fs; salvaImpostazioni(); applicaImpostazioni(); return; }
+    if (k === "0") { e.preventDefault(); prefs.fs = DEFAULTS.fs; savePrefs(); applyPrefs(); return; }
   }
 
   if (k === "Escape") {
-    if (dettaturaAttiva) fermaDettatura();
-    if (lettura || ("speechSynthesis" in window && speechSynthesis.speaking)) { zitto(); suono("stop"); }
-    if (cambiate.size) { cambiate.clear(); disegna(); }
-    if (document.activeElement === domanda && aperto) testo.focus();
-    nascondiAvviso();
+    if (dictating) stopDictation();
+    if (reading || ("speechSynthesis" in window && speechSynthesis.speaking)) { hush(); beep("stop"); }
+    if (changedLines.size) { changedLines.clear(); draw(); }
+    if (document.activeElement === ask && current) editor.focus();
+    hideNotice();
     return;
   }
 
   if (!/^F\d+$/.test(k) || k === "F11") return;
   e.preventDefault();
-  if (e.repeat) return;   // tasto tenuto premuto: conta una volta sola
+  if (e.repeat) return;   // a key held down counts once
 
   switch (k) {
-    case "F1": if (e.shiftKey) parla(AIUTO); else doveSono(); break;
+    case "F1": if (e.shiftKey) speak(t("help")); else whereAmI(); break;
     case "F2":
-      imp.barra = !imp.barra; salvaImpostazioni(); applicaImpostazioni();
-      if (imp.barra) { domanda.focus(); parla("Claude visibile."); } else { testo.focus(); parla("Solo testo."); }
+      prefs.bar = !prefs.bar; savePrefs(); applyPrefs();
+      if (prefs.bar) { ask.focus(); speak(t("claudeVisible")); } else { editor.focus(); speak(t("textOnly")); }
       break;
     case "F3":
       if (e.shiftKey) {
-        const i = (VELOCITA.indexOf(imp.velocita) + 1) % VELOCITA.length;
-        imp.velocita = VELOCITA[i]; salvaImpostazioni(); parla(`Velocità ${String(imp.velocita).replace(".", " virgola ")}`);
+        prefs.rate = RATES[(RATES.indexOf(prefs.rate) + 1) % RATES.length]; savePrefs();
+        speak(t("speed", { value: String(prefs.rate).replace(".", t("decimalSpoken")) }));
       } else if (e.ctrlKey) {
-        imp.autolettura = !imp.autolettura; salvaImpostazioni();
-        parla(imp.autolettura ? "Leggo le risposte di Claude." : "Non leggo più le risposte di Claude.");
-      } else if (document.activeElement === domanda || !aperto) parla(risposta.textContent);
-      else leggiDalCursore();
+        prefs.autoRead = !prefs.autoRead; savePrefs();
+        speak(prefs.autoRead ? t("autoReadOn") : t("autoReadOff"));
+      } else if (document.activeElement === ask || !current) speak(answer.textContent);
+      else readFromCursor();
       break;
     case "F4":
-      if (e.shiftKey) { nuovaConversazione(); break; }
-      if (!imp.barra) { imp.barra = true; salvaImpostazioni(); applicaImpostazioni(); }
-      zitto(); domanda.focus(); suono("via");
+      if (e.shiftKey) { newConversation(); break; }
+      if (!prefs.bar) { prefs.bar = true; savePrefs(); applyPrefs(); }
+      hush(); ask.focus(); beep("start");
       break;
-    case "F5": if (dettaturaAttiva) fermaDettatura(); else iniziaDettatura(); break;
-    case "F6": pannelloApri(); break;
-    case "F7": pannelloNuovo(); break;
-    case "F8": annullaClaude(); break;
+    case "F5": if (dictating) stopDictation(); else startDictation(); break;
+    case "F6": openPanelTexts(); break;
+    case "F7": openPanelNew(); break;
+    case "F8": undoClaude(); break;
     case "F9":
-      imp.font = (imp.font + 1) % FONT.length; salvaImpostazioni(); applicaImpostazioni();
-      parla("Carattere " + NOMI_FONT[imp.font]); break;
+      prefs.font = (prefs.font + 1) % FONTS.length; savePrefs(); applyPrefs();
+      speak(t("font", { name: FONT_NAMES[prefs.font] })); break;
     case "F10":
-      imp.tema = (imp.tema + 1) % TEMI.length; salvaImpostazioni(); applicaImpostazioni();
-      parla("Colori: " + NOMI_TEMI[imp.tema]); break;
-    case "F12": esportaWord(); break;
+      if (e.shiftKey) { openPanelLanguage(); break; }
+      prefs.theme = (prefs.theme + 1) % THEMES.length; savePrefs(); applyPrefs();
+      speak(t("theme", { name: (L.ui.themes || [])[prefs.theme] || "" })); break;
+    case "F12": exportWord(); break;
   }
 }, true);
 
 document.addEventListener("keyup", (e) => { if (e.key === "F5") e.preventDefault(); }, true);
+document.addEventListener("wheel", (e) => { if (e.ctrlKey) { e.preventDefault(); zoom(e.deltaY < 0 ? 2 : -2); } }, { passive: false });
 
-document.addEventListener("wheel", (e) => {
-  if (e.ctrlKey) { e.preventDefault(); zoom(e.deltaY < 0 ? 2 : -2); }
-}, { passive: false });
+/* ------------------------------------------------------------ start */
 
-/* ------------------------------------------------------------ avvio */
-
-setInterval(() => fetch("/api/ping").catch(() => statoSalvataggio("Programma chiuso?")), 20000);
+setInterval(() => fetch("/api/ping").catch(() => saveState(t("programClosed"))), 20000);
 fetch("/api/ping").catch(() => null);
 
-(async function avvio() {
-  applicaImpostazioni();
+(async function start() {
+  try { applyLanguage(await api("/api/lang")); } catch (e) { /* English keys stay */ }
+  applyPrefs();
+  answer.textContent = t("welcome");
   try {
-    const s = await api("/api/stato");
-    if (!s.claude) risposta.textContent = "Attenzione: Claude Code non è installato o non è raggiungibile. L'editor funziona lo stesso.";
-  } catch (e) { /* niente */ }
-  if (imp.ultimo) {
-    try { await api("/api/file?percorso=" + encodeURIComponent(imp.ultimo)); await apri(imp.ultimo, true); }
-    catch (e) { imp.ultimo = ""; salvaImpostazioni(); }
+    const s = await api("/api/status");
+    if (!s.claude) answer.textContent = t("claudeMissing");
+  } catch (e) { /* nothing */ }
+  if (prefs.last) {
+    try { await api("/api/file?path=" + encodeURIComponent(prefs.last)); await open(prefs.last, true); }
+    catch (e) { prefs.last = ""; savePrefs(); }
   }
-  setTimeout(() => parla(aperto ? "Clara Writer è pronto. " + etichetta(aperto).replace("›", ",") : "Clara Writer è pronto. Premi F6 per aprire un testo, F7 per crearne uno nuovo."), 600);
+  setTimeout(() => speak(current ? t("ready") + " " + spokenLabel(current) : t("ready") + " " + t("readyHint")), 600);
 })();

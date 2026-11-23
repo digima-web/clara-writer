@@ -34,7 +34,7 @@ articoli e libri. **Il testo resta sempre dell'autore:** Claude non riscrive nie
 
 Windows può mostrare l'avviso "Windows ha protetto il PC": clicca **Ulteriori informazioni** e poi **Esegui comunque**.
 
-Istruzioni complete: [LEGGIMI-INSTALLAZIONE.md](LEGGIMI-INSTALLAZIONE.md).
+Istruzioni complete: [docs/INSTALL.it.md](docs/INSTALL.it.md).
 
 ## I tasti
 
@@ -49,7 +49,12 @@ Istruzioni complete: [LEGGIMI-INSTALLAZIONE.md](LEGGIMI-INSTALLAZIONE.md).
 | F7 | Nuovo articolo, libro o capitolo |
 | F8 | Annulla le modifiche di Claude |
 | F9 / F10 | Carattere / colori |
+| Maiusc + F10 | Lingua |
 | F12 | Esporta in Word |
+
+## Lingue
+
+Clara Writer è disponibile in **inglese** e **italiano**. Segue la lingua di Windows e si cambia in qualsiasi momento con **Maiusc + F10**.
 
 ## Note
 

@@ -1,0 +1,183 @@
+{
+  "name": "English",
+  "speech": "en-GB",
+  "preferredVoices": [
+    "Sonia",
+    "Libby",
+    "Ryan",
+    "Aria",
+    "Jenny"
+  ],
+  "folders": {
+    "articles": "Articles",
+    "books": "Books",
+    "exports": "Exports",
+    "trash": "Trash",
+    "versions": "Versions"
+  },
+  "notes_file": "00 Index and notes",
+  "chapter_default": "Chapter 1",
+  "claude_voice": "Your replies are shown in large print and read aloud to an author who has very low vision. Always reply in English, in short, simple sentences, as plain text: no markdown, no tables, no long lists, no symbols. Start by saying what you did or what you found. Never change the text unless the author explicitly asks you to. Follow the rules in CLAUDE.md.",
+  "dictation": {
+    "quotes": [
+      "“",
+      "”"
+    ],
+    "rules": [
+      [
+        "full stop new line|period new line",
+        ".\\n"
+      ],
+      [
+        "new paragraph",
+        "\\n\\n"
+      ],
+      [
+        "new line",
+        "\\n"
+      ],
+      [
+        "question mark",
+        "?"
+      ],
+      [
+        "exclamation mark|exclamation point",
+        "!"
+      ],
+      [
+        "semicolon",
+        ";"
+      ],
+      [
+        "colon",
+        ":"
+      ],
+      [
+        "comma",
+        ","
+      ],
+      [
+        "full stop|period",
+        "."
+      ],
+      [
+        "open quote",
+        "“"
+      ],
+      [
+        "close quote|end quote",
+        "”"
+      ]
+    ]
+  },
+  "ui": {
+    "noTextOpen": "No text open",
+    "article": "Article",
+    "book": "Book",
+    "labelBook": "Book: {book} › {name}",
+    "labelArticle": "Article: {name}",
+    "statusLine": "line {line} · {words} words · {chars} characters",
+    "saved": "Saved",
+    "notSaved": "NOT SAVED",
+    "cannotSave": "Warning: I can't save. {error}",
+    "programClosed": "Program closed?",
+    "genericError": "Program error",
+    "placeholderEditor": "Press F6 to open a text, F7 to create a new one.",
+    "placeholderAsk": "Ask Claude, then press Enter",
+    "send": "Send",
+    "working": "Claude is working…",
+    "welcome": "Welcome. Press F6 to open a text, F7 to create a new one, F4 to ask Claude.",
+    "ready": "Clara Writer is ready.",
+    "readyHint": "Press F6 to open a text, F7 to create a new one.",
+    "claudeMissing": "Warning: Claude Code is not installed or cannot be reached. The editor still works.",
+    "opened": "Opened. {label}",
+    "cannotOpen": "I can't open the text. {error}",
+    "nothingToRead": "There is nothing to read after the cursor.",
+    "dictUnavailable": "Dictation is not available. Use the Windows key plus H.",
+    "openFirst": "Open a text first.",
+    "listening": "Listening… (F5 to stop)",
+    "micNotAllowed": "The microphone is not allowed. Edge needs permission.",
+    "dictNoService": "Edge dictation is not responding. Try the Windows key plus H.",
+    "noMic": "I can't find the microphone. Check that it is connected.",
+    "dictStartFailed": "I can't start dictation.",
+    "request": "Request: {text}",
+    "undoHint": "To undo Claude's changes, press F8",
+    "error": "Error: {error}",
+    "errorSpoken": "Something went wrong. {error}",
+    "cannotUndo": "I can't undo. {error}",
+    "newConversation": "New conversation with Claude.",
+    "newConversationSpoken": "I started a new conversation with Claude.",
+    "openToExport": "Open a text to export first.",
+    "exporting": "Creating the Word file…",
+    "panelHelp": "Up and down arrows to choose, Enter to confirm, Esc to leave.",
+    "typeHelp": "Type and press Enter. Esc to leave.",
+    "typeAndEnter": "{title}. Type and press Enter.",
+    "emptyTitle": "The title is empty.",
+    "cannotList": "I can't read the list of texts.",
+    "noTexts": "There are no texts yet. Press F7 to create one.",
+    "openTitle": "Open a text",
+    "whatCreate": "What do you want to create?",
+    "newArticle": "New article",
+    "newBook": "New book",
+    "newChapterIn": "New chapter in the book {book}",
+    "titleArticle": "Title of the new article",
+    "titleBook": "Title of the new book",
+    "titleChapter": "Title of the new chapter",
+    "cannotCreate": "I can't create it. {error}",
+    "chooseLanguage": "Choose the language",
+    "languageSet": "Language: {name}",
+    "whereNone": "No text open. Press F6 to open one.",
+    "posStart": "at the beginning",
+    "posEnd": "at the end",
+    "posLine": "at line {line} of {total}",
+    "whereAmI": "{label}. You are {pos}. The text has {words} words and {chars} characters.",
+    "help": "F1, where am I. F2, show or hide Claude. F3, read aloud from the cursor. F4, ask Claude. F5, start and stop dictation. F6, open. F7, new. F8, undo Claude's changes. F9, typeface. F10, colours. Shift and F10, language. F12, export to Word. Control plus and minus, text size. Esc, stop the voice.",
+    "textSize": "Text {size}",
+    "lineSpacing": "Line spacing {value}",
+    "claudeVisible": "Claude visible.",
+    "textOnly": "Text only.",
+    "speed": "Speed {value}",
+    "decimalSpoken": " point ",
+    "autoReadOn": "I will read Claude's replies aloud.",
+    "autoReadOff": "I will no longer read Claude's replies aloud.",
+    "font": "Typeface {name}",
+    "theme": "Colours: {name}",
+    "themes": [
+      "yellow on black",
+      "white on black",
+      "black on cream"
+    ]
+  },
+  "server": {
+    "missingPath": "The path is missing",
+    "outsideFolder": "This path is outside the writing folder",
+    "onlyMd": "Only .md files can be saved",
+    "missingTitle": "The title is missing",
+    "bookExists": "A book with this title already exists",
+    "bookNotFound": "Book not found",
+    "unknownType": "Unknown type",
+    "textExists": "A text with this name already exists",
+    "notesTitle": "{book}: index and notes",
+    "claudeNotFound": "I can't find Claude Code on this computer.",
+    "claudeTimeout": "Claude took too long, so I stopped it. The text has not changed.",
+    "claudeCannotStart": "I can't start Claude Code: {error}",
+    "claudeBadReply": "Claude did not reply as expected.",
+    "genericError": "Something went wrong.",
+    "openedFile": "The author has opened the file: {path}",
+    "cursorLine": "The cursor is on line {line}.",
+    "selection": "Text selected by the author:",
+    "noFile": "The author has no file open.",
+    "authorRequest": "The author's request:",
+    "undone": "I undid Claude's last change.",
+    "undoneSuffix": "(undone {stamp})",
+    "nothingToUndo": "There are no changes by Claude to undo.",
+    "pandocMissing": "I can't find Pandoc: it is needed to create the Word file.",
+    "pandocFailed": "Pandoc could not create the Word file. Is the file open in Word?",
+    "exportedBook": "I exported the book {name} to Word, {n} chapters. The file is in the {folder} folder.",
+    "exportedArticle": "I exported the article {name} to Word. The file is in the {folder} folder.",
+    "fileNotFound": "File not found",
+    "busy": "Claude is already working",
+    "notAllowed": "Request not allowed",
+    "unknownCommand": "Unknown command"
+  }
+}

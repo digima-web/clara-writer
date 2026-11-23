@@ -1,5 +1,6 @@
-# File personali e locali: non vanno su GitHub
+# Personal and local files: they do not go on GitHub
 config.json
+installed.ok
 installato.ok
 *.log
 __pycache__/
