@@ -58,7 +58,8 @@ Per usare un'altra cartella, crea `config.json` nella cartella del programma:
 4. Premi **F4**, scrivi "correggi gli errori di ortografia" e Invio. Dopo qualche secondo le righe
    cambiate si colorano e Claude dice cosa ha fatto. Premi **F8** per annullare.
 5. Premi **F12**: si crea il file Word nella cartella Esportati.
-6. Controlla che **OneDrive** sincronizzi la cartella Documenti.
+6. Metti un vecchio file Word nella cartella **Importa** (dentro la cartella dei testi), premi **F7** e scegli *Importa file Word*: diventa un articolo.
+7. Controlla che **OneDrive** sincronizzi la cartella Documenti.
 
 ## 5. Prove di sicurezza (prima di lasciarlo all'autore)
 

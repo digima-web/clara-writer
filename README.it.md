@@ -15,12 +15,15 @@ articoli e libri. **Il testo resta sempre dell'autore:** Claude non riscrive nie
 ## Cosa fa
 
 - Testo grande e regolabile (Ctrl + e Ctrl −), tre temi ad alto contrasto, carattere Atkinson Hyperlegible Next.
-- Riga corrente evidenziata, per non perdere il punto quando si alza lo sguardo dalla tastiera.
+- Cursore spesso e colorato e riga corrente evidenziata, per non perdere il punto quando si alza lo sguardo dalla tastiera.
+- I tasti principali sono sempre visibili in fondo allo schermo.
+- Conteggio di parole e battute, come chiedono le redazioni.
 - Salvataggio automatico.
 - Claude integrato: correzioni, consigli, ricerche, organizzazione di articoli e capitoli.
 - Ogni modifica di Claude viene colorata e si annulla con un tasto (F8).
 - Lettura a voce (F3) e dettatura (F5).
-- Esportazione in Word con un tasto (F12).
+- Esportazione in Word con un tasto (F12) e importazione dei file Word che hai già.
+- Richieste rapide a Claude con Ctrl + da 1 a 4, ricerca con Ctrl + F.
 
 ## Cosa serve
 
@@ -45,16 +48,18 @@ Istruzioni complete: [docs/INSTALL.it.md](docs/INSTALL.it.md).
 
 | Tasto | Cosa fa |
 | --- | --- |
-| F1 | Dove sono? |
-| F2 | Mostra o nasconde Claude |
-| F3 | Legge a voce dal cursore |
+| F1 | Dove sono? (Maiusc + F1: tutti i tasti, a voce) |
+| F2 | Mostra o nasconde Claude (Maiusc + F2: la barra dei tasti) |
+| F3 | Legge a voce dal cursore (Maiusc + F3: il paragrafo) |
 | F4 | Chiedi a Claude |
 | F5 | Dettatura: inizia e finisce |
 | F6 | Apri un testo |
-| F7 | Nuovo articolo, libro o capitolo |
+| F7 | Nuovo articolo, libro o capitolo, oppure importa file Word |
 | F8 | Annulla le modifiche di Claude |
 | F9 / F10 | Carattere / colori |
 | Maiusc + F10 | Lingua |
+| Ctrl + da 1 a 4 | Richieste rapide: ortografia, grammatica, ripetizioni, titoli |
+| Ctrl + F / Ctrl + G | Trova / trova il successivo |
 | F12 | Esporta in Word |
 
 ## Lingue

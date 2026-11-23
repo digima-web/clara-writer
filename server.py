@@ -152,7 +152,7 @@ def folder(key):
 
 
 def service_folders():
-    return {WS["folders"][k] for k in ("exports", "trash", "versions")} | {".claude", ".git"}
+    return {WS["folders"][k] for k in ("exports", "trash", "versions", "imports")} | {".claude", ".git"}
 
 
 def save_workspace():
@@ -181,7 +181,13 @@ def prepare_workspace():
                     break
         WS["folders"] = dict(LANGS[chosen or WS["language"]]["folders"])
         save_workspace()
-    for key in ("articles", "books", "exports", "trash", "versions"):
+    # folders added in later versions get their name from the current language
+    missing = [k for k in LANGS[DEFAULT_LANG]["folders"] if k not in WS["folders"]]
+    for k in missing:
+        WS["folders"][k] = pack()["folders"].get(k) or LANGS[DEFAULT_LANG]["folders"][k]
+    if missing:
+        save_workspace()
+    for key in ("articles", "books", "exports", "trash", "versions", "imports"):
         folder(key).mkdir(exist_ok=True)
     claude_md = ROOT / "CLAUDE.md"
     template = TEMPLATES / f"CLAUDE.{WS['language']}.md"
@@ -487,6 +493,57 @@ def export_word(rel):
     return {"ok": True, "message": message, "file": relative(output)}
 
 
+# ---------------------------------------------------------------- import Word files
+
+IMPORT_FORMATS = {".docx": "docx", ".odt": "odt", ".rtf": "rtf", ".txt": None, ".md": None}
+
+
+def import_files():
+    """Turns the files left in the import folder into articles; opens the folder if it is empty."""
+    src = folder("imports")
+    files = sorted(f for f in src.iterdir() if f.is_file() and f.suffix.lower() in IMPORT_FORMATS
+                   and not f.name.startswith("~$"))
+    if not files:
+        if ON_WINDOWS:
+            try:
+                os.startfile(str(src))
+            except OSError:
+                pass
+        return {"imported": [], "folder": WS["folders"]["imports"]}
+    pandoc = find_pandoc()
+    done = src / pack()["imports_done"]
+    imported, failed = [], []
+    for f in files:
+        fmt = IMPORT_FORMATS[f.suffix.lower()]
+        try:
+            if fmt is None:
+                text = read_text(f)
+            else:
+                if not pandoc:
+                    raise ValueError(T("pandocMissing"))
+                r = subprocess.run([pandoc, "-f", fmt, "-t", "commonmark", "--wrap=none", str(f)],
+                                   capture_output=True, text=True, encoding="utf-8", errors="replace",
+                                   timeout=120, creationflags=NO_WINDOW)
+                if r.returncode != 0:
+                    raise ValueError(r.stderr[-300:])
+                text = r.stdout
+            name = clean_name(f.stem) or "Imported"
+            out, n = folder("articles") / f"{name}.md", 2
+            while out.exists():
+                out, n = folder("articles") / f"{name} ({n}).md", n + 1
+            write_text(out, text.strip() + "\n")
+            done.mkdir(exist_ok=True)
+            target, n = done / f.name, 2
+            while target.exists():
+                target, n = done / f"{f.stem} ({n}){f.suffix}", n + 1
+            shutil.move(str(f), str(target))
+            imported.append(relative(out))
+        except (ValueError, OSError, subprocess.TimeoutExpired) as e:
+            log(f"Import of {f.name} failed: {e}")
+            failed.append(f.name)
+    return {"imported": imported, "failed": failed, "folder": WS["folders"]["imports"]}
+
+
 # ---------------------------------------------------------------- HTTP
 
 CONTENT_TYPES = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
@@ -587,6 +644,8 @@ class Handler(BaseHTTPRequestHandler):
             if url.path == "/api/new-conversation":
                 STATE["session"] = None
                 return self.reply(200, {"ok": True})
+            if url.path == "/api/import":
+                return self.reply(200, import_files())
             if url.path == "/api/undo":
                 return self.reply(200, undo_last())
             if url.path == "/api/export":

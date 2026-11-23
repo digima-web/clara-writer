@@ -72,6 +72,16 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 #editor::placeholder { color: var(--dim); }
 #editor::selection { background: var(--accent); color: var(--bg); }
 #editor.busy { opacity: .55; }
+#editor.own-caret { caret-color: transparent; }
+
+/* the big caret, drawn in the backdrop exactly where the text cursor is */
+.caret { position: relative; }
+.caret::after {
+  content: ""; position: absolute; left: -.07em; top: -.02em;
+  width: .17em; height: 1.22em; background: var(--accent);
+  border-radius: .04em; animation: blink 1.1s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: .25; } }
 
 /* ---------- Claude bar ---------- */
 #claude {
@@ -105,6 +115,15 @@ body { display: flex; flex-direction: column; overflow: hidden; }
   background: var(--fg); color: var(--bg);
   border: 0; border-radius: .3em; padding: 0 .9em; cursor: pointer;
 }
+
+/* ---------- key bar ---------- */
+#keys {
+  display: flex; flex-wrap: wrap; gap: .2em 1.1em;
+  padding: .3em .8em .4em; border-top: 2px solid var(--dim);
+  font-size: max(17px, calc(var(--fs) * 0.46)); color: var(--dim);
+}
+#keys.hidden { display: none; }
+#keys b { color: var(--fg); background: var(--line); padding: 0 .3em; border-radius: .2em; margin-right: .25em; }
 
 /* ---------- Claude at work ---------- */
 #working {

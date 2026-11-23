@@ -29,13 +29,14 @@ function applyLanguage(info) {
   ask.placeholder = t("placeholderAsk");
   $("send").textContent = t("send");
   $("working").textContent = t("working");
+  $("keys").innerHTML = (L.ui.keysBar || []).map(([k, what]) => `<span><b>${esc(k)}</b>${esc(what)}</span>`).join("");
   pickVoice();
   updateInfo();
 }
 
 /* ------------------------------------------------------------ settings */
 
-const DEFAULTS = { fs: 36, lh: 1.8, font: 0, theme: 0, rate: 1, autoRead: true, bar: true, last: "" };
+const DEFAULTS = { fs: 36, lh: 1.8, font: 0, theme: 0, rate: 1, autoRead: true, bar: true, keys: true, last: "" };
 const FONTS = ['"Clara Atkinson", Verdana, sans-serif', "Verdana, sans-serif", "Arial, sans-serif"];
 const FONT_NAMES = ["Atkinson", "Verdana", "Arial"];
 const THEMES = ["theme-yellow", "theme-white", "theme-cream"];
@@ -58,6 +59,7 @@ function applyPrefs() {
   r.setProperty("--font", FONTS[prefs.font] || FONTS[0]);
   document.body.className = THEMES[prefs.theme] || THEMES[0];
   claudeBar.classList.toggle("hidden", !prefs.bar);
+  $("keys").classList.toggle("hidden", !prefs.keys);
   draw();
 }
 
@@ -276,11 +278,19 @@ function cursorLine() { return editor.value.slice(0, editor.selectionStart).spli
 
 function draw() {
   const lines = editor.value.split("\n");
-  const cur = document.activeElement === editor || reading ? cursorLine() : -1;
+  const focused = document.activeElement === editor;
+  const cur = focused || reading ? cursorLine() : -1;
+  // our own thick caret: only when the editor has the focus and nothing is selected
+  const ownCaret = focused && !editor.readOnly && editor.selectionStart === editor.selectionEnd;
+  editor.classList.toggle("own-caret", ownCaret);
+  const col = ownCaret ? editor.selectionStart - (editor.value.lastIndexOf("\n", editor.selectionStart - 1) + 1) : -1;
   let html = "";
   lines.forEach((line, i) => {
     const cls = "r" + (i === cur ? " current" : "") + (changedLines.has(i) ? " changed" : "");
-    html += `<div class="${cls}">${line ? esc(line) : "​"}</div>`;
+    const body = ownCaret && i === cur
+      ? esc(line.slice(0, col)) + '<span class="caret"></span>' + (esc(line.slice(col)) || "\u200b")
+      : (line ? esc(line) : "\u200b");
+    html += `<div class="${cls}">${body}</div>`;
   });
   backdrop.innerHTML = html;
   backdrop.scrollTop = editor.scrollTop;
@@ -365,6 +375,8 @@ editor.addEventListener("input", () => {
 editor.addEventListener("scroll", () => { backdrop.scrollTop = editor.scrollTop; });
 editor.addEventListener("keyup", (e) => { if (/^(Arrow|Page|Home|End)/.test(e.key)) redraw(true); });
 editor.addEventListener("click", () => redraw(false));
+editor.addEventListener("selectionchange", () => redraw(false));
+document.addEventListener("selectionchange", () => { if (document.activeElement === editor) redraw(false); });
 editor.addEventListener("focus", () => redraw(false));
 editor.addEventListener("blur", () => redraw(false));
 window.addEventListener("resize", () => redraw(true));
@@ -491,6 +503,22 @@ async function exportWord() {
   } catch (e) { beep("error"); notice(e.message, true, 6000); }
 }
 
+/* ------------------------------------------------------------ import Word files */
+
+async function importWord() {
+  await saveNow();
+  showNotice(t("importing"));
+  try {
+    const r = await api("/api/import", {});
+    if (!r.imported.length && !(r.failed || []).length) { notice(t("importEmpty", { folder: r.folder }), true, 9000); return; }
+    let msg = r.imported.length ? t("imported", { n: r.imported.length }) : "";
+    if ((r.failed || []).length) msg += " " + t("importFailed", { files: r.failed.join(", ") });
+    beep(r.imported.length ? "ok" : "error");
+    if (r.imported.length) await open(r.imported[0], true);
+    notice(msg.trim(), true, 7000);
+  } catch (e) { beep("error"); notice(e.message); }
+}
+
 /* ------------------------------------------------------------ panels: open, new, language */
 
 let items = [], choice = 0, onChoose = null, onField = null, focusBefore = null;
@@ -512,13 +540,13 @@ function openPanel(title, entries, chosen, help) {
   overlay.hidden = false;
   highlight(true, title);
 }
-function askTitle(title, done) {
+function askTitle(title, done, initial = "") {
   hush();
   focusBefore = focusBefore || document.activeElement;
   $("panel-title").textContent = title;
   $("panel-help").textContent = t("typeHelp");
   list.innerHTML = ""; items = [];
-  field.hidden = false; field.value = "";
+  field.hidden = false; field.value = initial; field.select();
   onField = done;
   overlay.hidden = false;
   field.focus();
@@ -569,7 +597,9 @@ function openPanelNew() {
   const book = bookOf(current);
   const choices = [{ type: "article", text: t("newArticle") }, { type: "book", text: t("newBook") }];
   if (book) choices.push({ type: "chapter", text: t("newChapterIn", { book }) });
+  choices.push({ type: "import", text: t("importWord") });
   openPanel(t("whatCreate"), choices, (v) => {
+    if (v.type === "import") { focusBefore = null; importWord(); return; }
     const prompt = { article: t("titleArticle"), book: t("titleBook"), chapter: t("titleChapter") }[v.type];
     askTitle(prompt, async (title) => {
       try {
@@ -592,6 +622,47 @@ function openPanelLanguage() {
   });
   const i = entries.findIndex((v) => v.code === langCode);
   if (i >= 0) { choice = i; highlight(false); }
+}
+
+/* ------------------------------------------------------------ read the paragraph, find, quick requests */
+
+function readParagraph() {
+  // a paragraph is one line of the editor; on an empty line, read the one before
+  const lines = editor.value.split("\n");
+  let r = cursorLine();
+  while (r > 0 && !lines[r].trim()) r--;
+  const text = plain(lines[r] || "");
+  if (!text) { notice(t("nothingToRead")); return; }
+  speak(text);
+}
+
+let lastFind = "";
+function findNext(term) {
+  if (!term) return;
+  const v = editor.value.toLocaleLowerCase(langCode), q = term.toLocaleLowerCase(langCode);
+  let i = v.indexOf(q, editor.selectionEnd), wrapped = false;
+  if (i < 0) { i = v.indexOf(q); wrapped = i >= 0; }
+  if (i < 0) { beep("error"); notice(t("notFound", { text: term })); return; }
+  editor.focus();
+  editor.setSelectionRange(i, i + term.length);
+  centre(); draw();
+  const from = editor.value.lastIndexOf("\n", i - 1) + 1, end = editor.value.indexOf("\n", i);
+  const line = plain(editor.value.slice(from, end < 0 ? editor.value.length : end)).slice(0, 220);
+  speak((wrapped ? t("findWrapped") + " " : "") + line);
+}
+function openFind() {
+  if (!current) { notice(t("openFirst")); return; }
+  askTitle(t("findPrompt"), (term) => { lastFind = term; focusBefore = null; findNext(term); }, lastFind);
+}
+
+function quickRequest(n) {
+  const q = (L.ui.quick || [])[n];
+  if (!q || busy) return;
+  if (!current) { notice(t("openFirst")); return; }
+  if (!prefs.bar) { prefs.bar = true; savePrefs(); applyPrefs(); }
+  ask.value = q.prompt;
+  speak(q.name);
+  askClaude();
 }
 
 /* ------------------------------------------------------------ keys */
@@ -621,6 +692,14 @@ document.addEventListener("keydown", (e) => {
     }
     if (/^F\d+$/.test(k)) e.preventDefault();
     return;
+  }
+
+  // quick requests (Ctrl + 1..4), find (Ctrl + F) and find next (Ctrl + G)
+  if (e.ctrlKey && !e.altKey && !e.shiftKey) {
+    const digit = /^Digit([1-4])$/.exec(e.code) || /^Numpad([1-4])$/.exec(e.code);
+    if (digit) { e.preventDefault(); quickRequest(Number(digit[1]) - 1); return; }
+    if (e.code === "KeyF") { e.preventDefault(); openFind(); return; }
+    if (e.code === "KeyG") { e.preventDefault(); if (lastFind) findNext(lastFind); else openFind(); return; }
   }
 
   // text size and line spacing
@@ -655,13 +734,19 @@ document.addEventListener("keydown", (e) => {
   switch (k) {
     case "F1": if (e.shiftKey) speak(t("help")); else whereAmI(); break;
     case "F2":
+      if (e.shiftKey) {
+        prefs.keys = !prefs.keys; savePrefs(); applyPrefs();
+        speak(prefs.keys ? t("keysOn") : t("keysOff")); break;
+      }
       prefs.bar = !prefs.bar; savePrefs(); applyPrefs();
       if (prefs.bar) { ask.focus(); speak(t("claudeVisible")); } else { editor.focus(); speak(t("textOnly")); }
       break;
     case "F3":
-      if (e.shiftKey) {
+      if (e.shiftKey && e.ctrlKey) {
         prefs.rate = RATES[(RATES.indexOf(prefs.rate) + 1) % RATES.length]; savePrefs();
         speak(t("speed", { value: String(prefs.rate).replace(".", t("decimalSpoken")) }));
+      } else if (e.shiftKey) {
+        if (current) readParagraph(); else speak(answer.textContent);
       } else if (e.ctrlKey) {
         prefs.autoRead = !prefs.autoRead; savePrefs();
         speak(prefs.autoRead ? t("autoReadOn") : t("autoReadOff"));

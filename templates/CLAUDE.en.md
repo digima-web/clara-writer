@@ -27,6 +27,7 @@ Your replies are shown in large print and read aloud.
 - Do not touch the {versions}, {exports} and {trash} folders, except to move files into {trash}.
 - If a request involves more than 5 files, ask for confirmation first.
 - Do not create files that are not .md.
+- Do not touch the {imports} folder: it is used to import Word files.
 
 ## The author's preferences
 (Add preferences here when the author asks you to, for example "remember that I prefer...")

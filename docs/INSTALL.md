@@ -57,7 +57,8 @@ To use a different folder, create `config.json` in the program folder:
 4. Press **F4**, type "correct the spelling mistakes" and press Enter. After a few seconds the changed
    lines are coloured and Claude says what it did. Press **F8** to undo.
 5. Press **F12**: the Word file is created in the Exports folder.
-6. Check that **OneDrive** backs up the Documents folder.
+6. Put an old Word file in the **Import** folder (inside Documents\Clara Writer), press **F7** and choose *Import Word files*: it becomes an article.
+7. Check that **OneDrive** backs up the Documents folder.
 
 ## 5. Safety checks (before handing it over)
 

@@ -14,12 +14,15 @@ your articles and books. **Your words stay yours:** Claude never rewrites anythi
 ## What it does
 
 - Large, adjustable text (Ctrl + and Ctrl −), three high-contrast themes, Atkinson Hyperlegible Next typeface.
-- The current line is highlighted, so you don't lose your place when you look down at the keyboard.
+- A thick, coloured cursor and the current line highlighted, so you don't lose your place when you look down at the keyboard.
+- The main keys are always shown at the bottom of the screen.
+- Word count and character count, as editors ask for.
 - Automatic saving.
 - Claude built in: corrections, suggestions, research, organising articles and chapters.
 - Every change Claude makes is highlighted and can be undone with one key (F8).
 - Read-aloud (F3) and dictation (F5).
-- One-key export to Word (F12).
+- One-key export to Word (F12), and import of your existing Word files.
+- Quick requests to Claude with Ctrl + 1 to 4, find with Ctrl + F.
 
 ## What you need
 
@@ -44,16 +47,18 @@ Full instructions: [docs/INSTALL.md](docs/INSTALL.md).
 
 | Key | What it does |
 | --- | --- |
-| F1 | Where am I? |
-| F2 | Show or hide Claude |
-| F3 | Read aloud from the cursor |
+| F1 | Where am I? (Shift + F1: all the keys, read aloud) |
+| F2 | Show or hide Claude (Shift + F2: the key bar) |
+| F3 | Read aloud from the cursor (Shift + F3: the current paragraph) |
 | F4 | Ask Claude |
 | F5 | Dictation: start and stop |
 | F6 | Open a text |
-| F7 | New article, book or chapter |
+| F7 | New article, book or chapter, or import Word files |
 | F8 | Undo Claude's changes |
 | F9 / F10 | Typeface / colours |
 | Shift + F10 | Language |
+| Ctrl + 1 to 4 | Quick requests: spelling, grammar, repetitions, titles |
+| Ctrl + F / Ctrl + G | Find / find next |
 | F12 | Export to Word |
 
 ## Languages

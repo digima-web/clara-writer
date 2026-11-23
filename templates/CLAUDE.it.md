@@ -27,6 +27,7 @@ Le tue risposte vengono mostrate in grande e lette a voce.
 - Non toccare le cartelle {versions}, {exports} e {trash}, se non per spostare file in {trash}.
 - Se una richiesta riguarda più di 5 file, prima chiedi conferma.
 - Non creare file che non siano .md.
+- Non toccare la cartella {imports}: serve per importare i file Word.
 
 ## Preferenze dell'autore
 (Aggiungi qui le preferenze quando l'autore te lo chiede, per esempio "ricordati che preferisco...")

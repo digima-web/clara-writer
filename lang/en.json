@@ -13,7 +13,8 @@
     "books": "Books",
     "exports": "Exports",
     "trash": "Trash",
-    "versions": "Versions"
+    "versions": "Versions",
+    "imports": "Import"
   },
   "notes_file": "00 Index and notes",
   "chapter_default": "Chapter 1",
@@ -131,7 +132,7 @@
     "posEnd": "at the end",
     "posLine": "at line {line} of {total}",
     "whereAmI": "{label}. You are {pos}. The text has {words} words and {chars} characters.",
-    "help": "F1, where am I. F2, show or hide Claude. F3, read aloud from the cursor. F4, ask Claude. F5, start and stop dictation. F6, open. F7, new. F8, undo Claude's changes. F9, typeface. F10, colours. Shift and F10, language. F12, export to Word. Control plus and minus, text size. Esc, stop the voice.",
+    "help": "F1, where am I. F2, show or hide Claude. Shift and F2, show or hide the key bar. F3, read aloud from the cursor. Shift and F3, read the paragraph. F4, ask Claude. F5, start and stop dictation. F6, open. F7, new, or import Word files. F8, undo Claude's changes. F9, typeface. F10, colours. Shift and F10, language. F12, export to Word. Control and 1 to 4, quick requests: spelling, grammar, repetitions, titles. Control and F, find. Control and G, find next. Control plus and minus, text size. Esc, stop the voice.",
     "textSize": "Text {size}",
     "lineSpacing": "Line spacing {value}",
     "claudeVisible": "Claude visible.",
@@ -146,7 +147,81 @@
       "yellow on black",
       "white on black",
       "black on cream"
-    ]
+    ],
+    "keysBar": [
+      [
+        "F1",
+        "Where am I"
+      ],
+      [
+        "F3",
+        "Read"
+      ],
+      [
+        "F4",
+        "Claude"
+      ],
+      [
+        "F5",
+        "Dictate"
+      ],
+      [
+        "F6",
+        "Open"
+      ],
+      [
+        "F7",
+        "New"
+      ],
+      [
+        "F8",
+        "Undo"
+      ],
+      [
+        "F12",
+        "Word"
+      ],
+      [
+        "Ctrl+1–4",
+        "Quick"
+      ],
+      [
+        "Ctrl+F",
+        "Find"
+      ],
+      [
+        "Shift+F1",
+        "All keys"
+      ]
+    ],
+    "quick": [
+      {
+        "name": "Correct the spelling.",
+        "prompt": "Correct only the spelling and typing mistakes in the open text. Do not change anything else. Then tell me how many corrections you made."
+      },
+      {
+        "name": "Check grammar and punctuation.",
+        "prompt": "Check the grammar and punctuation of the open text and tell me the problems you find, one at a time, quoting the sentence. Do not change the file."
+      },
+      {
+        "name": "Look for repetitions.",
+        "prompt": "Tell me if the open text has repeated words close together or sentences that are too long. Quote them briefly. Do not change the file."
+      },
+      {
+        "name": "Suggest titles.",
+        "prompt": "Suggest three possible titles for the open text, each with one sentence explaining why. Do not change the file."
+      }
+    ],
+    "keysOn": "Key bar visible.",
+    "keysOff": "Key bar hidden.",
+    "findPrompt": "Find in the text",
+    "notFound": "I can't find {text}.",
+    "findWrapped": "From the beginning.",
+    "importWord": "Import Word files",
+    "importing": "Importing…",
+    "importEmpty": "The {folder} folder is empty. I opened it: put the Word files in it, then press F7 and choose Import Word files again.",
+    "imported": "I imported {n} files into the articles. The first one is open.",
+    "importFailed": "I could not import: {files}."
   },
   "server": {
     "missingPath": "The path is missing",
@@ -179,5 +254,6 @@
     "busy": "Claude is already working",
     "notAllowed": "Request not allowed",
     "unknownCommand": "Unknown command"
-  }
+  },
+  "imports_done": "Imported"
 }
