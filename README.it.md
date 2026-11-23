@@ -1,0 +1,67 @@
+# Clara Writer
+
+**Scrittura chiara, con l'AI al tuo fianco.**
+*Clear writing, with AI by your side.*
+
+*[Read in English](README.md)*
+
+Clara Writer è un editor di testo per Windows pensato per chi vede poco: caratteri molto grandi,
+colori ad alto contrasto, tutto comandato da tasti semplici, lettura e dettatura a voce.
+Dentro c'è Claude, l'assistente AI di Anthropic, che aiuta a correggere, rileggere e organizzare
+articoli e libri. **Il testo resta sempre dell'autore:** Claude non riscrive niente senza una richiesta.
+
+## Cosa fa
+
+- Testo grande e regolabile (Ctrl + e Ctrl −), tre temi ad alto contrasto, carattere Atkinson Hyperlegible Next.
+- Riga corrente evidenziata, per non perdere il punto quando si alza lo sguardo dalla tastiera.
+- Salvataggio automatico.
+- Claude integrato: correzioni, consigli, ricerche, organizzazione di articoli e capitoli.
+- Ogni modifica di Claude viene colorata e si annulla con un tasto (F8).
+- Lettura a voce (F3) e dettatura (F5).
+- Esportazione in Word con un tasto (F12).
+
+## Cosa serve
+
+- Windows 10 o 11 e una connessione a Internet.
+- Un abbonamento Claude (almeno **Pro**): ogni persona usa il proprio account.
+
+## Installazione
+
+1. Scarica l'ultima versione dalla pagina **Releases** di questo progetto.
+2. Estrai la cartella e fai doppio clic su **Clara Writer.bat**.
+3. La prima volta installa da solo i programmi necessari (Git, Python, Pandoc, Claude Code)
+   e chiede di accedere a Claude.
+
+Windows può mostrare l'avviso "Windows ha protetto il PC": clicca **Ulteriori informazioni** e poi **Esegui comunque**.
+
+Istruzioni complete: [LEGGIMI-INSTALLAZIONE.md](LEGGIMI-INSTALLAZIONE.md).
+
+## I tasti
+
+| Tasto | Cosa fa |
+| --- | --- |
+| F1 | Dove sono? |
+| F2 | Mostra o nasconde Claude |
+| F3 | Legge a voce dal cursore |
+| F4 | Chiedi a Claude |
+| F5 | Dettatura: inizia e finisce |
+| F6 | Apri un testo |
+| F7 | Nuovo articolo, libro o capitolo |
+| F8 | Annulla le modifiche di Claude |
+| F9 / F10 | Carattere / colori |
+| F12 | Esporta in Word |
+
+## Note
+
+Clara Writer è un progetto indipendente: non è un prodotto di Anthropic.
+"Claude" è un marchio di Anthropic.
+
+Il carattere Atkinson Hyperlegible Next è del Braille Institute of America, con licenza SIL Open Font License (vedi `web/font/OFL.txt`).
+
+## Licenza
+
+Clara Writer è software libero, distribuito con licenza **GNU GPL v3** (vedi [LICENSE](LICENSE)):
+puoi usarlo, studiarlo, modificarlo e condividerlo. Chi distribuisce una versione modificata
+deve farlo con la stessa licenza, pubblicandone il codice.
+
+© 2026 Francesco Bonomelli
