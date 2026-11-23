@@ -1,10 +1,13 @@
 # Builds the download package and publishes a GitHub release
-# every time a version tag (v1.0.0, v1.1.0, ...) is pushed.
+# whenever the VERSION file on main changes to a version not yet released.
+# (It can also be started by hand from the Actions tab.)
 name: Release
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+    paths: [VERSION]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -15,21 +18,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check that VERSION matches the tag
-        run: |
-          test "v$(tr -d '[:space:]' < VERSION)" = "${GITHUB_REF_NAME}"
+      - name: Read the version
+        id: v
+        run: echo "tag=v$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_OUTPUT"
 
-      - name: Build clara-writer.zip
-        run: git archive --format=zip -o clara-writer.zip HEAD
-
-      - name: Release notes
-        run: |
-          f="docs/releases/${GITHUB_REF_NAME}.md"
-          if [ -f "$f" ]; then cp "$f" notes.md; else echo "Clara Writer ${GITHUB_REF_NAME}" > notes.md; fi
-
-      - name: Publish the release
+      - name: Stop if this version is already released
+        id: check
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" clara-writer.zip Install-Clara-Writer.bat \
-            --title "Clara Writer ${GITHUB_REF_NAME#v}" --notes-file notes.md --latest
+          if gh release view "${{ steps.v.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=yes" >> "$GITHUB_OUTPUT"; echo "Already released."
+          else
+            echo "exists=no" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build clara-writer.zip
+        if: steps.check.outputs.exists == 'no'
+        run: git archive --format=zip -o clara-writer.zip HEAD
+
+      - name: Publish the release
+        if: steps.check.outputs.exists == 'no'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.v.outputs.tag }}
+        run: |
+          f="docs/releases/${TAG}.md"
+          if [ -f "$f" ]; then cp "$f" notes.md; else echo "Clara Writer ${TAG}" > notes.md; fi
+          gh release create "$TAG" clara-writer.zip Install-Clara-Writer.bat \
+            --target "$GITHUB_SHA" --title "Clara Writer ${TAG#v}" --notes-file notes.md --latest
