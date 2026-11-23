@@ -67,8 +67,20 @@ body { display: flex; flex-direction: column; overflow: hidden; }
   background: transparent; color: var(--fg);
   caret-color: var(--accent);
   resize: none; outline: none;
-  scrollbar-width: thin; scrollbar-color: var(--dim) transparent;
 }
+
+/* scrollbar: dark (no white glare), wide and easy to grab with the mouse.
+   Text and backdrop get the same one, so the lines wrap in the same place. */
+#backdrop::-webkit-scrollbar, #editor::-webkit-scrollbar, #answer::-webkit-scrollbar, #panel::-webkit-scrollbar { width: 26px; }
+#backdrop::-webkit-scrollbar-track, #editor::-webkit-scrollbar-track,
+#answer::-webkit-scrollbar-track, #panel::-webkit-scrollbar-track { background: var(--bg); border-left: 2px solid var(--line); }
+#backdrop::-webkit-scrollbar-thumb, #editor::-webkit-scrollbar-thumb,
+#answer::-webkit-scrollbar-thumb, #panel::-webkit-scrollbar-thumb {
+  background: var(--dim); border: 5px solid var(--bg); border-radius: 13px; min-height: 60px;
+}
+#editor::-webkit-scrollbar-thumb:hover, #answer::-webkit-scrollbar-thumb:hover, #panel::-webkit-scrollbar-thumb:hover { background: var(--fg); }
+#backdrop::-webkit-scrollbar-button, #editor::-webkit-scrollbar-button,
+#answer::-webkit-scrollbar-button, #panel::-webkit-scrollbar-button { display: none; }
 #editor::placeholder { color: var(--dim); }
 #editor::selection { background: var(--accent); color: var(--bg); }
 #editor.busy { opacity: .55; }
