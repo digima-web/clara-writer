@@ -36,6 +36,9 @@ Se manca Internet, parte semplicemente con la versione già installata.
 Per disattivare gli aggiornamenti, crea `config.json` nella cartella del programma con `{ "auto_update": false }`.
 Una copia con un file `DEV` o una cartella `.git` (copia di sviluppo) non si aggiorna mai da sola.
 
+**Consiglio:** Clara Writer mostra una freccia del mouse grande dentro la sua finestra. Per averla grande anche nel resto di Windows,
+apri **Impostazioni > Accessibilità > Puntatore del mouse e tocco** e aumenta la dimensione (il colore giallo o invertito aiuta molto).
+
 ## 3. Dove stanno i testi
 
 La prima volta Clara Writer crea la cartella **Documenti\Clara Writer** con le sottocartelle

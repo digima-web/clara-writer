@@ -15,7 +15,8 @@ your articles and books. **Your words stay yours:** Claude never rewrites anythi
 
 - Large, adjustable text (Ctrl + and Ctrl −), three high-contrast themes, Atkinson Hyperlegible Next typeface.
 - A thick, coloured cursor and the current line highlighted, so you don't lose your place when you look down at the keyboard.
-- The main keys are always shown at the bottom of the screen.
+- Big buttons for the main functions at the bottom of the screen, for those who prefer the mouse (Shift + F2 hides them).
+- A big, high-contrast mouse pointer inside the app.
 - Word count and character count, as editors ask for.
 - Automatic saving.
 - Claude built in: corrections, suggestions, research, organising articles and chapters.

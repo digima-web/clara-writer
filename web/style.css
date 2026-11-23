@@ -116,14 +116,25 @@ body { display: flex; flex-direction: column; overflow: hidden; }
   border: 0; border-radius: .3em; padding: 0 .9em; cursor: pointer;
 }
 
-/* ---------- key bar ---------- */
+/* ---------- big buttons for the main functions ---------- */
 #keys {
-  display: flex; flex-wrap: wrap; gap: .2em 1.1em;
-  padding: .3em .8em .4em; border-top: 2px solid var(--dim);
-  font-size: max(17px, calc(var(--fs) * 0.46)); color: var(--dim);
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: .3em;
+  padding: .35em .5em .45em; border-top: 3px solid var(--border);
+  font-size: max(24px, calc(var(--fs) * 0.66));
 }
 #keys.hidden { display: none; }
-#keys b { color: var(--fg); background: var(--line); padding: 0 .3em; border-radius: .2em; margin-right: .25em; }
+#keys button {
+  min-height: 2.5em; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font: inherit; font-weight: 700; line-height: 1.1;
+  background: var(--bg); color: var(--fg);
+  border: 3px solid var(--fg); border-radius: .35em; padding: .2em .5em;
+}
+#keys button small { font-size: .55em; font-weight: 400; color: var(--dim); margin-top: .15em; }
+#keys button:hover, #keys button:focus-visible { background: var(--fg); color: var(--bg); outline: none; }
+#keys button:hover small, #keys button:focus-visible small { color: var(--bg); }
+#keys button.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+#keys button.on small { color: var(--bg); }
 
 /* ---------- Claude at work ---------- */
 #working {
@@ -170,3 +181,9 @@ body { display: flex; flex-direction: column; overflow: hidden; }
   padding: .5em 1em; border-radius: .4em; text-align: center;
   box-shadow: 0 0 0 4px var(--bg);
 }
+
+/* ---------- big mouse pointer (inside Clara Writer only) ---------- */
+body { --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cpath d='M4 3 L4 52 L17 40 L26 60 L35 56 L26 37 L44 37 Z' fill='%23ffe94d' stroke='%23000' stroke-width='3.5' stroke-linejoin='round'/%3E%3C/svg%3E") 4 3, auto; --beam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='64' viewBox='0 0 40 64'%3E%3Cpath d='M8 4 H32 M8 60 H32 M20 4 V60' stroke='%23000' stroke-width='11' stroke-linecap='round'/%3E%3Cpath d='M8 4 H32 M8 60 H32 M20 4 V60' stroke='%23ffe94d' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E") 20 32, text; }
+body.theme-cream { --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cpath d='M4 3 L4 52 L17 40 L26 60 L35 56 L26 37 L44 37 Z' fill='%23000' stroke='%23fff' stroke-width='3.5' stroke-linejoin='round'/%3E%3C/svg%3E") 4 3, auto; --beam: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='64' viewBox='0 0 40 64'%3E%3Cpath d='M8 4 H32 M8 60 H32 M20 4 V60' stroke='%23fff' stroke-width='11' stroke-linecap='round'/%3E%3Cpath d='M8 4 H32 M8 60 H32 M20 4 V60' stroke='%23000' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E") 20 32, text; }
+html, body, button, #list li, #panel { cursor: var(--arrow); }
+#editor, #ask, #field { cursor: var(--beam); }

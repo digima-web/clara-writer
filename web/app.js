@@ -29,7 +29,8 @@ function applyLanguage(info) {
   ask.placeholder = t("placeholderAsk");
   $("send").textContent = t("send");
   $("working").textContent = t("working");
-  $("keys").innerHTML = (L.ui.keysBar || []).map(([k, what]) => `<span><b>${esc(k)}</b>${esc(what)}</span>`).join("");
+  $("keys").innerHTML = (L.ui.buttons || []).map((b) =>
+    `<button type="button" data-action="${esc(b.id)}" title="${esc(b.key)}">${esc(b.label)}<small>${esc(b.key)}</small></button>`).join("");
   pickVoice();
   updateInfo();
 }
@@ -775,6 +776,34 @@ document.addEventListener("keydown", (e) => {
 
 document.addEventListener("keyup", (e) => { if (e.key === "F5") e.preventDefault(); }, true);
 document.addEventListener("wheel", (e) => { if (e.ctrlKey) { e.preventDefault(); zoom(e.deltaY < 0 ? 2 : -2); } }, { passive: false });
+
+/* ------------------------------------------------------------ big buttons */
+
+const ACTIONS = {
+  open: () => openPanelTexts(),
+  new: () => openPanelNew(),
+  read: () => { if (current) readFromCursor(); else speak(answer.textContent); },
+  dictate: () => { if (dictating) stopDictation(); else startDictation(); },
+  ask: () => { if (!prefs.bar) { prefs.bar = true; savePrefs(); applyPrefs(); } hush(); ask.focus(); beep("start"); },
+  undo: () => undoClaude(),
+  find: () => openFind(),
+  word: () => exportWord(),
+  bigger: () => zoom(4),
+  smaller: () => zoom(-4),
+  where: () => whereAmI(),
+  help: () => speak(t("help")),
+};
+// mousedown is cancelled so the text keeps the focus (and the cursor stays where it was)
+$("keys").addEventListener("mousedown", (e) => { if (e.target.closest("button")) e.preventDefault(); });
+$("keys").addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (b && ACTIONS[b.dataset.action] && overlay.hidden) ACTIONS[b.dataset.action]();
+});
+// the Dictate button shows when dictation is on
+setInterval(() => {
+  const d = document.querySelector('#keys button[data-action="dictate"]');
+  if (d) d.classList.toggle("on", dictating);
+}, 300);
 
 /* ------------------------------------------------------------ start */
 

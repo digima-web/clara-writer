@@ -130,7 +130,7 @@
     "posEnd": "alla fine",
     "posLine": "alla riga {line} di {total}",
     "whereAmI": "{label}. Sei {pos}. Il testo ha {words} parole e {chars} battute.",
-    "help": "F1, dove sono. F2, mostra o nasconde Claude. Maiuscolo e F2, mostra o nasconde la barra dei tasti. F3, leggi dal cursore. Maiuscolo e F3, leggi il paragrafo. F4, chiedi a Claude. F5, inizia e finisce la dettatura. F6, apri. F7, nuovo, o importa file Word. F8, annulla le modifiche di Claude. F9, carattere. F10, colori. Maiuscolo e F10, lingua. F12, esporta in Word. Control e da 1 a 4, richieste rapide: ortografia, grammatica, ripetizioni, titoli. Control e F, trova. Control e G, trova il successivo. Control più e meno, grandezza del testo. Esc, ferma la voce.",
+    "help": "F1, dove sono. F2, mostra o nasconde Claude. Maiuscolo e F2, mostra o nasconde i pulsanti. F3, leggi dal cursore. Maiuscolo e F3, leggi il paragrafo. F4, chiedi a Claude. F5, inizia e finisce la dettatura. F6, apri. F7, nuovo, o importa file Word. F8, annulla le modifiche di Claude. F9, carattere. F10, colori. Maiuscolo e F10, lingua. F12, esporta in Word. Control e da 1 a 4, richieste rapide: ortografia, grammatica, ripetizioni, titoli. Control e F, trova. Control e G, trova il successivo. Control più e meno, grandezza del testo. Esc, ferma la voce.",
     "textSize": "Testo {size}",
     "lineSpacing": "Interlinea {value}",
     "claudeVisible": "Claude visibile.",
@@ -145,52 +145,6 @@
       "giallo su nero",
       "bianco su nero",
       "nero su crema"
-    ],
-    "keysBar": [
-      [
-        "F1",
-        "Dove sono"
-      ],
-      [
-        "F3",
-        "Leggi"
-      ],
-      [
-        "F4",
-        "Claude"
-      ],
-      [
-        "F5",
-        "Detta"
-      ],
-      [
-        "F6",
-        "Apri"
-      ],
-      [
-        "F7",
-        "Nuovo"
-      ],
-      [
-        "F8",
-        "Annulla"
-      ],
-      [
-        "F12",
-        "Word"
-      ],
-      [
-        "Ctrl+1–4",
-        "Rapide"
-      ],
-      [
-        "Ctrl+F",
-        "Trova"
-      ],
-      [
-        "Maiusc+F1",
-        "Tutti i tasti"
-      ]
     ],
     "quick": [
       {
@@ -210,8 +164,8 @@
         "prompt": "Proponi tre possibili titoli per il testo aperto, ognuno con una frase che spiega perché. Non modificare il file."
       }
     ],
-    "keysOn": "Barra dei tasti visibile.",
-    "keysOff": "Barra dei tasti nascosta.",
+    "keysOn": "Pulsanti visibili.",
+    "keysOff": "Pulsanti nascosti.",
     "findPrompt": "Trova nel testo",
     "notFound": "Non trovo {text}.",
     "findWrapped": "Dall'inizio.",
@@ -219,7 +173,69 @@
     "importing": "Importo…",
     "importEmpty": "La cartella {folder} è vuota. L'ho aperta: mettici dentro i file Word, poi premi F7 e scegli di nuovo Importa file Word.",
     "imported": "Ho importato {n} file negli articoli. Il primo è aperto.",
-    "importFailed": "Non sono riuscito a importare: {files}."
+    "importFailed": "Non sono riuscito a importare: {files}.",
+    "buttons": [
+      {
+        "id": "open",
+        "label": "Apri",
+        "key": "F6"
+      },
+      {
+        "id": "new",
+        "label": "Nuovo",
+        "key": "F7"
+      },
+      {
+        "id": "read",
+        "label": "Leggi",
+        "key": "F3"
+      },
+      {
+        "id": "dictate",
+        "label": "Detta",
+        "key": "F5"
+      },
+      {
+        "id": "ask",
+        "label": "Chiedi a Claude",
+        "key": "F4"
+      },
+      {
+        "id": "undo",
+        "label": "Annulla Claude",
+        "key": "F8"
+      },
+      {
+        "id": "find",
+        "label": "Trova",
+        "key": "Ctrl+F"
+      },
+      {
+        "id": "word",
+        "label": "Word",
+        "key": "F12"
+      },
+      {
+        "id": "bigger",
+        "label": "A+",
+        "key": "Ctrl +"
+      },
+      {
+        "id": "smaller",
+        "label": "A−",
+        "key": "Ctrl −"
+      },
+      {
+        "id": "where",
+        "label": "Dove sono",
+        "key": "F1"
+      },
+      {
+        "id": "help",
+        "label": "Tasti",
+        "key": "Maiusc+F1"
+      }
+    ]
   },
   "server": {
     "missingPath": "Percorso mancante",

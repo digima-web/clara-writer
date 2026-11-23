@@ -132,7 +132,7 @@
     "posEnd": "at the end",
     "posLine": "at line {line} of {total}",
     "whereAmI": "{label}. You are {pos}. The text has {words} words and {chars} characters.",
-    "help": "F1, where am I. F2, show or hide Claude. Shift and F2, show or hide the key bar. F3, read aloud from the cursor. Shift and F3, read the paragraph. F4, ask Claude. F5, start and stop dictation. F6, open. F7, new, or import Word files. F8, undo Claude's changes. F9, typeface. F10, colours. Shift and F10, language. F12, export to Word. Control and 1 to 4, quick requests: spelling, grammar, repetitions, titles. Control and F, find. Control and G, find next. Control plus and minus, text size. Esc, stop the voice.",
+    "help": "F1, where am I. F2, show or hide Claude. Shift and F2, show or hide the buttons. F3, read aloud from the cursor. Shift and F3, read the paragraph. F4, ask Claude. F5, start and stop dictation. F6, open. F7, new, or import Word files. F8, undo Claude's changes. F9, typeface. F10, colours. Shift and F10, language. F12, export to Word. Control and 1 to 4, quick requests: spelling, grammar, repetitions, titles. Control and F, find. Control and G, find next. Control plus and minus, text size. Esc, stop the voice.",
     "textSize": "Text {size}",
     "lineSpacing": "Line spacing {value}",
     "claudeVisible": "Claude visible.",
@@ -147,52 +147,6 @@
       "yellow on black",
       "white on black",
       "black on cream"
-    ],
-    "keysBar": [
-      [
-        "F1",
-        "Where am I"
-      ],
-      [
-        "F3",
-        "Read"
-      ],
-      [
-        "F4",
-        "Claude"
-      ],
-      [
-        "F5",
-        "Dictate"
-      ],
-      [
-        "F6",
-        "Open"
-      ],
-      [
-        "F7",
-        "New"
-      ],
-      [
-        "F8",
-        "Undo"
-      ],
-      [
-        "F12",
-        "Word"
-      ],
-      [
-        "Ctrl+1–4",
-        "Quick"
-      ],
-      [
-        "Ctrl+F",
-        "Find"
-      ],
-      [
-        "Shift+F1",
-        "All keys"
-      ]
     ],
     "quick": [
       {
@@ -212,8 +166,8 @@
         "prompt": "Suggest three possible titles for the open text, each with one sentence explaining why. Do not change the file."
       }
     ],
-    "keysOn": "Key bar visible.",
-    "keysOff": "Key bar hidden.",
+    "keysOn": "Buttons visible.",
+    "keysOff": "Buttons hidden.",
     "findPrompt": "Find in the text",
     "notFound": "I can't find {text}.",
     "findWrapped": "From the beginning.",
@@ -221,7 +175,69 @@
     "importing": "Importing…",
     "importEmpty": "The {folder} folder is empty. I opened it: put the Word files in it, then press F7 and choose Import Word files again.",
     "imported": "I imported {n} files into the articles. The first one is open.",
-    "importFailed": "I could not import: {files}."
+    "importFailed": "I could not import: {files}.",
+    "buttons": [
+      {
+        "id": "open",
+        "label": "Open",
+        "key": "F6"
+      },
+      {
+        "id": "new",
+        "label": "New",
+        "key": "F7"
+      },
+      {
+        "id": "read",
+        "label": "Read",
+        "key": "F3"
+      },
+      {
+        "id": "dictate",
+        "label": "Dictate",
+        "key": "F5"
+      },
+      {
+        "id": "ask",
+        "label": "Ask Claude",
+        "key": "F4"
+      },
+      {
+        "id": "undo",
+        "label": "Undo Claude",
+        "key": "F8"
+      },
+      {
+        "id": "find",
+        "label": "Find",
+        "key": "Ctrl+F"
+      },
+      {
+        "id": "word",
+        "label": "Word",
+        "key": "F12"
+      },
+      {
+        "id": "bigger",
+        "label": "A+",
+        "key": "Ctrl +"
+      },
+      {
+        "id": "smaller",
+        "label": "A−",
+        "key": "Ctrl −"
+      },
+      {
+        "id": "where",
+        "label": "Where am I",
+        "key": "F1"
+      },
+      {
+        "id": "help",
+        "label": "Keys",
+        "key": "Shift+F1"
+      }
+    ]
   },
   "server": {
     "missingPath": "The path is missing",

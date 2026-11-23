@@ -36,6 +36,9 @@ If there is no internet connection, it simply starts the version already install
 To turn updates off, create `config.json` in the program folder with `{ "auto_update": false }`.
 A copy with a `DEV` file or a `.git` folder (a developer copy) never updates itself.
 
+**Tip:** Clara Writer shows a big mouse pointer inside its own window. To have a big pointer everywhere in Windows too,
+open **Settings > Accessibility > Mouse pointer and touch** and increase the size (a yellow or inverted colour helps a lot).
+
 ## 3. Where the texts are
 
 The first time, Clara Writer creates the folder **Documents\Clara Writer** with its subfolders
