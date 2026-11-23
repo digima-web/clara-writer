@@ -6,3 +6,5 @@ installato.ok
 __pycache__/
 *.pyc
 Claude outputs/
+_vecchi/
+_to_delete/
