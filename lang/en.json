@@ -180,62 +180,74 @@
       {
         "id": "open",
         "label": "Open",
-        "key": "F6"
+        "key": "F6",
+        "group": "text"
       },
       {
         "id": "new",
         "label": "New",
-        "key": "F7"
-      },
-      {
-        "id": "read",
-        "label": "Read",
-        "key": "F3"
-      },
-      {
-        "id": "dictate",
-        "label": "Dictate",
-        "key": "F5"
-      },
-      {
-        "id": "ask",
-        "label": "Ask Claude",
-        "key": "F4"
-      },
-      {
-        "id": "undo",
-        "label": "Undo Claude",
-        "key": "F8"
+        "key": "F7",
+        "group": "text"
       },
       {
         "id": "find",
         "label": "Find",
-        "key": "Ctrl+F"
+        "key": "Ctrl+F",
+        "group": "text"
       },
       {
         "id": "word",
         "label": "Word",
-        "key": "F12"
+        "key": "F12",
+        "group": "text"
+      },
+      {
+        "id": "read",
+        "label": "Read",
+        "key": "F3",
+        "group": "voice"
+      },
+      {
+        "id": "dictate",
+        "label": "Dictate",
+        "key": "F5",
+        "group": "voice"
+      },
+      {
+        "id": "ask",
+        "label": "Ask",
+        "key": "F4",
+        "group": "claude"
+      },
+      {
+        "id": "undo",
+        "label": "Undo",
+        "key": "F8",
+        "group": "claude"
       },
       {
         "id": "bigger",
         "label": "A+",
-        "key": "Ctrl +"
+        "key": "Ctrl+",
+        "group": "view"
       },
       {
         "id": "smaller",
         "label": "A−",
-        "key": "Ctrl −"
+        "key": "Ctrl−",
+        "group": "view"
       },
       {
         "id": "where",
-        "label": "Where am I",
-        "key": "F1"
+        "label": "Where",
+        "key": "F1",
+        "group": "view"
       },
       {
         "id": "help",
         "label": "Keys",
-        "key": "Shift+F1"
+        "key": "Shift+F1",
+        "group": "view"
       }
     ]
   },

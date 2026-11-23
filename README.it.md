@@ -16,7 +16,7 @@ articoli e libri. **Il testo resta sempre dell'autore:** Claude non riscrive nie
 
 - Testo grande e regolabile (Ctrl + e Ctrl −), tre temi ad alto contrasto, carattere Atkinson Hyperlegible Next.
 - Cursore spesso e colorato e riga corrente evidenziata, per non perdere il punto quando si alza lo sguardo dalla tastiera.
-- Pulsanti grandi per le funzioni principali in fondo allo schermo, per chi preferisce il mouse (Maiusc + F2 li nasconde).
+- Pulsanti grandi per le funzioni principali in fondo allo schermo, in quattro famiglie di colore, per chi preferisce il mouse (Maiusc + F2 li nasconde).
 - Freccia del mouse grande e ad alto contrasto dentro il programma.
 - Conteggio di parole e battute, come chiedono le redazioni.
 - Salvataggio automatico.

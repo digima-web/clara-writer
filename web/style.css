@@ -128,25 +128,37 @@ body { display: flex; flex-direction: column; overflow: hidden; }
   border: 0; border-radius: .3em; padding: 0 .9em; cursor: pointer;
 }
 
-/* ---------- big buttons for the main functions ---------- */
+/* ---------- big buttons for the main functions, in four families ---------- */
+.theme-yellow { --g-text: #ffe94d; --g-voice: #5cc8ff; --g-claude: #ffa64d; --g-view: #b9a93a; }
+.theme-white  { --g-text: #ffffff; --g-voice: #5cc8ff; --g-claude: #ffa64d; --g-view: #bbbbbb; }
+.theme-cream  { --g-text: #111111; --g-voice: #0050b4; --g-claude: #a34500; --g-view: #555555; }
+
 #keys {
-  display: grid; grid-template-columns: repeat(6, 1fr); gap: .3em;
+  display: flex; flex-direction: column; gap: .3em;
   padding: .35em .5em .45em; border-top: 3px solid var(--border);
-  font-size: max(24px, calc(var(--fs) * 0.66));
+  font-size: max(24px, calc(var(--fs) * 0.74));
 }
 #keys.hidden { display: none; }
+#keys .row { display: flex; gap: .8em; }                 /* the space between families */
+#keys .group { display: flex; gap: .3em; flex: 1 1 0; }
+#keys .row .group:first-child { flex-grow: 2; }           /* 4 buttons next to 2, 2 next to 4 */
+#keys .row:last-child .group:first-child { flex-grow: 1; }
+#keys .row:last-child .group:last-child { flex-grow: 2; }
 #keys button {
-  min-height: 2.5em; min-width: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  --c: var(--g-text);
+  flex: 1 1 0; min-width: 0; min-height: 1.9em;
+  display: flex; align-items: baseline; justify-content: center; gap: .35em;
+  white-space: nowrap; overflow: hidden;
   font: inherit; font-weight: 700; line-height: 1.1;
-  background: var(--bg); color: var(--fg);
-  border: 3px solid var(--fg); border-radius: .35em; padding: .2em .5em;
+  background: var(--bg); color: var(--c);
+  border: 3px solid var(--c); border-radius: .3em; padding: .2em .35em;
 }
-#keys button small { font-size: .55em; font-weight: 400; color: var(--dim); margin-top: .15em; }
-#keys button:hover, #keys button:focus-visible { background: var(--fg); color: var(--bg); outline: none; }
-#keys button:hover small, #keys button:focus-visible small { color: var(--bg); }
-#keys button.on { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-#keys button.on small { color: var(--bg); }
+#keys .g-voice button  { --c: var(--g-voice); }
+#keys .g-claude button { --c: var(--g-claude); }
+#keys .g-view button   { --c: var(--g-view); border-width: 2px; }
+#keys button small { font-size: .5em; font-weight: 400; opacity: .8; }
+#keys button:hover, #keys button:focus-visible { background: var(--c); color: var(--bg); outline: none; }
+#keys button.on { background: var(--c); color: var(--bg); box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--c); }
 
 /* ---------- Claude at work ---------- */
 #working {

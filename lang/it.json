@@ -178,62 +178,74 @@
       {
         "id": "open",
         "label": "Apri",
-        "key": "F6"
+        "key": "F6",
+        "group": "text"
       },
       {
         "id": "new",
         "label": "Nuovo",
-        "key": "F7"
-      },
-      {
-        "id": "read",
-        "label": "Leggi",
-        "key": "F3"
-      },
-      {
-        "id": "dictate",
-        "label": "Detta",
-        "key": "F5"
-      },
-      {
-        "id": "ask",
-        "label": "Chiedi a Claude",
-        "key": "F4"
-      },
-      {
-        "id": "undo",
-        "label": "Annulla Claude",
-        "key": "F8"
+        "key": "F7",
+        "group": "text"
       },
       {
         "id": "find",
         "label": "Trova",
-        "key": "Ctrl+F"
+        "key": "Ctrl+F",
+        "group": "text"
       },
       {
         "id": "word",
         "label": "Word",
-        "key": "F12"
+        "key": "F12",
+        "group": "text"
+      },
+      {
+        "id": "read",
+        "label": "Leggi",
+        "key": "F3",
+        "group": "voice"
+      },
+      {
+        "id": "dictate",
+        "label": "Detta",
+        "key": "F5",
+        "group": "voice"
+      },
+      {
+        "id": "ask",
+        "label": "Chiedi",
+        "key": "F4",
+        "group": "claude"
+      },
+      {
+        "id": "undo",
+        "label": "Annulla",
+        "key": "F8",
+        "group": "claude"
       },
       {
         "id": "bigger",
         "label": "A+",
-        "key": "Ctrl +"
+        "key": "Ctrl+",
+        "group": "view"
       },
       {
         "id": "smaller",
         "label": "A−",
-        "key": "Ctrl −"
+        "key": "Ctrl−",
+        "group": "view"
       },
       {
         "id": "where",
         "label": "Dove sono",
-        "key": "F1"
+        "key": "F1",
+        "group": "view"
       },
       {
         "id": "help",
         "label": "Tasti",
-        "key": "Maiusc+F1"
+        "key": "Maiusc+F1",
+        "group": "view"
       }
     ]
   },

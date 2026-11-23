@@ -29,8 +29,12 @@ function applyLanguage(info) {
   ask.placeholder = t("placeholderAsk");
   $("send").textContent = t("send");
   $("working").textContent = t("working");
-  $("keys").innerHTML = (L.ui.buttons || []).map((b) =>
-    `<button type="button" data-action="${esc(b.id)}" title="${esc(b.key)}">${esc(b.label)}<small>${esc(b.key)}</small></button>`).join("");
+  // buttons in families (texts, voice, Claude, view): two rows, two families per row
+  const groups = {};
+  for (const b of L.ui.buttons || []) (groups[b.group] = groups[b.group] || []).push(b);
+  const family = (g) => `<div class="group g-${g}">` + (groups[g] || []).map((b) =>
+    `<button type="button" data-action="${esc(b.id)}" title="${esc(b.key)}">${esc(b.label)}<small>${esc(b.key)}</small></button>`).join("") + "</div>";
+  $("keys").innerHTML = `<div class="row">${family("text")}${family("voice")}</div><div class="row">${family("claude")}${family("view")}</div>`;
   pickVoice();
   updateInfo();
 }
