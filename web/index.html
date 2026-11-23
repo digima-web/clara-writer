@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Clara Writer</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:,">
+</head>
+<body class="tema-giallo">
+
+<header id="stato">
+  <span id="dove">Nessun testo aperto</span>
+  <span id="info"></span>
+  <span id="salvataggio"></span>
+</header>
+
+<main id="area">
+  <div id="contenitore">
+    <div id="sfondo" aria-hidden="true"></div>
+    <textarea id="testo" lang="it" spellcheck="true" readonly
+      placeholder="Premi F6 per aprire un testo, F7 per crearne uno nuovo."></textarea>
+  </div>
+</main>
+
+<section id="claude">
+  <div id="risposta">Benvenuto. Premi F6 per aprire un testo, F7 per crearne uno nuovo, F4 per chiedere a Claude.</div>
+  <div class="riga-domanda">
+    <textarea id="domanda" lang="it" rows="2" placeholder="Chiedi a Claude, poi premi Invio"></textarea>
+    <button id="invia" type="button">Invia</button>
+  </div>
+</section>
+
+<div id="lavoro" hidden>Claude sta lavorando…</div>
+
+<div id="velo" hidden>
+  <div id="pannello" role="dialog" aria-modal="true">
+    <h2 id="pannello-titolo"></h2>
+    <ul id="lista"></ul>
+    <input id="campo" type="text" lang="it" hidden>
+    <p id="pannello-aiuto"></p>
+  </div>
+</div>
+
+<div id="avviso" role="status" aria-live="polite" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# File personali e locali: non vanno su GitHub
+config.json
+installato.ok
+*.log
+__pycache__/
+*.pyc
+Claude outputs/
